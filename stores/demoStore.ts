@@ -1,0 +1,82 @@
+import { WonItem } from '@/utils/gameLogic';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
+import { createJSONStorage, persist } from 'zustand/middleware';
+
+
+/**
+ * c'est le store qui va stocker les données de la simulation grâce à zustand
+ * 
+ */
+interface DemoStore {
+    // 📊 Statistiques
+    totalOpened: number;
+    totalValue: number;
+
+    // 🎁 Historique des drops (max 50 pour ne pas surcharger)
+    lastDrops: WonItem[];
+
+    // 🏆 Meilleur drop
+    bestDrop: WonItem | null;
+
+    // 🎮 Actions
+    addDrop: (item: WonItem) => void;
+    resetStats: () => void;
+
+    // 📈 Statistiques calculées
+    getAverageValue: () => number;
+    getTotalByRarity: () => Record<string, number>;
+}
+
+export const useDemoStore = create<DemoStore>()(
+    persist(
+        (set, get) => ({
+            totalOpened: 0,
+            totalValue: 0,
+            lastDrops: [],
+            bestDrop: null,
+
+            // 🎁 Ajouter un drop
+            addDrop: (item) =>
+                set((state) => {
+                    const isBestDrop =
+                        !state.bestDrop || item.price > state.bestDrop.price;
+
+                    return {
+                        totalOpened: state.totalOpened + 1,
+                        totalValue: state.totalValue + item.price,
+                        lastDrops: [item, ...state.lastDrops].slice(0, 50), // Garde les 50 derniers
+                        bestDrop: isBestDrop ? item : state.bestDrop,
+                    };
+                }),
+
+            // 🔄 Reset toutes les stats
+            resetStats: () =>
+                set({
+                    totalOpened: 0,
+                    totalValue: 0,
+                    lastDrops: [],
+                    bestDrop: null,
+                }),
+
+            // 📊 Calculer la valeur moyenne
+            getAverageValue: () => {
+                const { totalOpened, totalValue } = get();
+                return totalOpened > 0 ? totalValue / totalOpened : 0;
+            },
+
+            // 📈 Nombre de drops par rareté
+            getTotalByRarity: () => {
+                const { lastDrops } = get();
+                return lastDrops.reduce((acc, item) => {
+                    acc[item.rarity] = (acc[item.rarity] || 0) + 1;
+                    return acc;
+                }, {} as Record<string, number>);
+            },
+        }),
+        {
+            name: 'cs2-demo-storage', // Nom de la clé dans AsyncStorage
+            storage: createJSONStorage(() => AsyncStorage),
+        }
+    )
+);
