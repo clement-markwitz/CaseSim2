@@ -19,13 +19,20 @@ interface DemoStore {
     // 🏆 Meilleur drop
     bestDrop: WonItem | null;
 
+    priceCase: number;
+
+    // 🔍 Recherche
+    searchQuery: string;
+    setSearchQuery: (query: string) => void;
+
     // 🎮 Actions
-    addDrop: (item: WonItem) => void;
+    addDrop: (item: WonItem, priceCase: number) => void;
     resetStats: () => void;
 
     // 📈 Statistiques calculées
     getAverageValue: () => number;
     getTotalByRarity: () => Record<string, number>;
+    getProfit: () => number;
 }
 
 export const useDemoStore = create<DemoStore>()(
@@ -35,9 +42,10 @@ export const useDemoStore = create<DemoStore>()(
             totalValue: 0,
             lastDrops: [],
             bestDrop: null,
+            priceCase: 0,
 
             // 🎁 Ajouter un drop
-            addDrop: (item) =>
+            addDrop: (item, priceCase) =>
                 set((state) => {
                     const isBestDrop =
                         !state.bestDrop || item.price > state.bestDrop.price;
@@ -47,6 +55,7 @@ export const useDemoStore = create<DemoStore>()(
                         totalValue: state.totalValue + item.price,
                         lastDrops: [item, ...state.lastDrops].slice(0, 50), // Garde les 50 derniers
                         bestDrop: isBestDrop ? item : state.bestDrop,
+                        priceCase: state.priceCase + priceCase,
                     };
                 }),
 
@@ -57,6 +66,7 @@ export const useDemoStore = create<DemoStore>()(
                     totalValue: 0,
                     lastDrops: [],
                     bestDrop: null,
+                    priceCase: 0,
                 }),
 
             // 📊 Calculer la valeur moyenne
@@ -73,10 +83,25 @@ export const useDemoStore = create<DemoStore>()(
                     return acc;
                 }, {} as Record<string, number>);
             },
+            getProfit: () => {
+                const state = get();
+                return state.totalValue - state.priceCase;
+            },
+            // 🔍 Recherche
+            searchQuery: '',
+            setSearchQuery: (query) => set({ searchQuery: query.toLowerCase() }),
         }),
+
         {
             name: 'cs2-demo-storage', // Nom de la clé dans AsyncStorage
             storage: createJSONStorage(() => AsyncStorage),
+            partialize: (state) => ({
+                totalOpened: state.totalOpened,
+                totalValue: state.totalValue,
+                lastDrops: state.lastDrops,
+                bestDrop: state.bestDrop,
+                priceCase: state.priceCase,
+            }),
         }
     )
 );
