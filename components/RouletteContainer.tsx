@@ -1,58 +1,126 @@
-import Colors from '@/constants/Colors';
-import { WINNER_INDEX, WonItem } from '@/utils/gameLogic';
+// RouletteContainer.tsx
+import Colors, { colorRarityBar } from '@/constants/Colors';
+import { WonItem } from '@/utils/gameLogic';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Easing, FlatList, LayoutChangeEvent, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+    Animated,
+    Easing,
+    FlatList,
+    LayoutChangeEvent,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 import SkinCard from './SkinCard';
 
-// CONFIGURATION
-const CARD_WIDTH = 150;
-const MARGIN = 4;
-const ITEM_WIDTH = CARD_WIDTH + (MARGIN * 2);
+// --- CONSTANTES ---
+const ITEM_WIDTH = 158; // Largeur d'un item (150) + margins (8)
+const WINNER_INDEX = 45; // L'index du gagnant dans le tableau
 
-const RouletteContainer = ({ skins }: { skins: WonItem[] | null }) => {
+interface RouletteContainerProps {
+    skins: WonItem[] | null;
+    onComplete?: () => void;
+}
+
+const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
     const flatListRef = useRef<FlatList>(null);
     const scrollX = useRef(new Animated.Value(0)).current;
+    const pulseAnim = useRef(new Animated.Value(1)).current;
+    const glowAnim = useRef(new Animated.Value(0.3)).current;
 
-    // États
-    const [isRolling, setIsRolling] = useState(false);
     const [containerWidth, setContainerWidth] = useState(0);
+    const [isRolling, setIsRolling] = useState(false);
+    const [showWinEffect, setShowWinEffect] = useState(false);
+    const [revealedWinnerColor, setRevealedWinnerColor] = useState<string | null>(null);
 
-    const startRoll = () => {
-        // Si largeur inconnue ou déjà en train de rouler, on stop
-        if (containerWidth === 0 || isRolling) return;
+    // Animation du curseur central (pulse)
+    useEffect(() => {
+        const pulse = Animated.loop(
+            Animated.sequence([
+                Animated.timing(pulseAnim, {
+                    toValue: 1.2,
+                    duration: 600,
+                    useNativeDriver: true,
+                }),
+                Animated.timing(pulseAnim, {
+                    toValue: 1,
+                    duration: 600,
+                    useNativeDriver: true,
+                }),
+            ])
+        );
 
-        setIsRolling(true);
-
-        // 1. On remet tout à zéro proprement
-        scrollX.stopAnimation();
-        scrollX.setValue(ITEM_WIDTH * 9 + ITEM_WIDTH / 2);
-
-        // Petit hack : on force le scroll à 0 immédiatement via la ref si elle existe
-        if (flatListRef.current) {
-            flatListRef.current.scrollToOffset({ offset: ITEM_WIDTH * 10 + ITEM_WIDTH / 2, animated: false });
+        if (!isRolling) {
+            pulse.start();
+        } else {
+            pulse.stop();
+            pulseAnim.setValue(1);
         }
 
-        // 2. Calcul de la destination
+        return () => pulse.stop();
+    }, [isRolling]);
+
+    // Animation glow pendant le roll
+    useEffect(() => {
+        if (isRolling) {
+            Animated.loop(
+                Animated.sequence([
+                    Animated.timing(glowAnim, {
+                        toValue: 0.8,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(glowAnim, {
+                        toValue: 0.3,
+                        duration: 300,
+                        useNativeDriver: true,
+                    }),
+                ])
+            ).start();
+        }
+    }, [isRolling]);
+
+    // Fonction principale de lancement
+    const startRoll = () => {
+        if (containerWidth === 0 || !skins || skins.length === 0) return;
+        setRevealedWinnerColor(null);
+        setIsRolling(true);
+        setShowWinEffect(false);
+        scrollX.stopAnimation();
+        scrollX.setValue(0);
+
+        // Calcul de la destination
         const targetOffset = ((WINNER_INDEX - 1) * ITEM_WIDTH) + ITEM_WIDTH / 2 + 4;
-        const randomOffset = Math.floor(Math.random() * 180);
+        const randomOffset = Math.floor(Math.random() * (ITEM_WIDTH - 4));
         const finalDestination = targetOffset + randomOffset;
 
-        // 3. Animation
+        // Animation avec easing personnalisé pour effet "casino"
         Animated.timing(scrollX, {
             toValue: finalDestination,
-            duration: 5000,
-            easing: Easing.bezier(0.1, 0.7, 0.1, 1),
-            useNativeDriver: false, // OBLIGATOIRE à false pour contrôler le scroll
+            duration: 6000,
+            easing: Easing.bezier(0.15, 0.85, 0.1, 1),
+            useNativeDriver: false,
         }).start(({ finished }) => {
             if (finished) {
-
                 setIsRolling(false);
+                setShowWinEffect(true);
+                const winnerSkin = skins?.[WINNER_INDEX];
+                if (winnerSkin) {
+                    setRevealedWinnerColor(colorRarityBar[winnerSkin.rarity]);
+                }
+
+                // Vibration feedback (si disponible)
+                // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+                if (onComplete) {
+                    onComplete();
+                }
             }
         });
     };
 
-    // LISTENER : C'est lui qui fait bouger la liste quand scrollX change
+    // Listener pour synchroniser le scroll
     useEffect(() => {
         const listener = scrollX.addListener(({ value }) => {
             if (flatListRef.current) {
@@ -65,17 +133,20 @@ const RouletteContainer = ({ skins }: { skins: WonItem[] | null }) => {
         return () => scrollX.removeListener(listener);
     }, []);
 
-    // TRIGGER : Se lance quand les skins changent OU quand la largeur est trouvée
+    // Trigger au changement de skins
     useEffect(() => {
-        if (skins && skins.length > 0) {
-            // On attend un tout petit peu que le rendu visuel soit fini
+        if (skins && skins.length > 0 && containerWidth > 0) {
+            setRevealedWinnerColor(null);
+            setShowWinEffect(false);
 
-            startRoll();
-
+            const timer = setTimeout(() => {
+                startRoll();
+            }, 0);
+            return () => clearTimeout(timer);
         }
-    }, [skins]);
+    }, [skins, containerWidth]);
 
-    // OnLayout : Capture la largeur de l'écran
+    // Capture de la largeur
     const onLayout = (event: LayoutChangeEvent) => {
         const { width } = event.nativeEvent.layout;
         if (width !== containerWidth && width > 0) {
@@ -83,100 +154,275 @@ const RouletteContainer = ({ skins }: { skins: WonItem[] | null }) => {
         }
     };
 
-    // --- LE RENDU ---
+    const winnerColor = revealedWinnerColor || Colors.light.tint;
+
     return (
-        <View style={styles.container} onLayout={onLayout}>
+        <View style={styles.wrapper}>
+            {/* Titre de section */}
+            <View style={styles.titleContainer}>
+                <View style={styles.titleLine} />
+            </View>
 
-            <View style={styles.centerLine} />
+            {/* Container principal */}
+            <View style={styles.container} onLayout={onLayout}>
+                {/* Background décoratif */}
+                <LinearGradient
+                    colors={[
+                        Colors.light.background,
+                        Colors.light.background_elevated,
+                        Colors.light.background,
+                    ]}
+                    style={styles.backgroundGradient}
+                />
 
-            {/* MESSAGE D'ATTENTE (affiché par dessus si besoin) */}
-            {(!skins || skins.length === 0) && (
-                <View style={styles.waitingMessage}>
-                    <Text style={{ color: 'white', opacity: 0.5 }}>En attente...</Text>
+                {/* Bordure supérieure lumineuse */}
+                <Animated.View
+                    style={[
+                        styles.topBorder,
+                        {
+                            opacity: glowAnim,
+                            backgroundColor: isRolling ? Colors.light.tint : winnerColor
+                        }
+                    ]}
+                />
+
+                {/* Bordure inférieure lumineuse */}
+                <Animated.View
+                    style={[
+                        styles.bottomBorder,
+                        {
+                            opacity: glowAnim,
+                            backgroundColor: isRolling ? Colors.light.tint : winnerColor
+                        }
+                    ]}
+                />
+
+                {/* Curseur central animé */}
+                <View style={styles.centerLineContainer}>
+                    <Animated.View
+                        style={[
+                            styles.centerLine,
+                            {
+                                transform: [{ scaleY: pulseAnim }],
+                                backgroundColor: showWinEffect ? winnerColor : Colors.light.tint,
+                            }
+                        ]}
+                    />
+                    <Animated.View
+                        style={[
+                            styles.centerLineGlow,
+                            {
+                                opacity: pulseAnim,
+                                backgroundColor: showWinEffect ? winnerColor : Colors.light.tint,
+                            }
+                        ]}
+                    />
+
                 </View>
-            )}
 
-            {/* CORRECTION MAJEURE ICI :
-               On affiche TOUJOURS la FlatList, mais on joue sur l'opacité.
-               Si containerWidth est 0, opacity = 0 (invisible mais présent).
-               Cela permet à "ref={flatListRef}" de s'attacher correctement.
-            */}
-            <FlatList
-                ref={flatListRef}
-                data={skins || []} // Tableau vide si null pour éviter le crash
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                scrollEnabled={false}
-                style={{ opacity: (containerWidth > 0 && skins) ? 1 : 0 }} // <--- L'ASTUCE EST ICI
+                {/* Message d'attente */}
+                {(!skins || skins.length === 0) && (
+                    <View style={styles.waitingMessage}>
+                        <View style={styles.loadingDots}>
+                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
+                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
+                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
+                        </View>
+                        <Text style={styles.waitingText}>Préparation...</Text>
+                    </View>
+                )}
 
-                getItemLayout={(data, index) => ({
-                    length: ITEM_WIDTH,
-                    offset: ITEM_WIDTH * index,
-                    index,
-                })}
-                renderItem={({ item, index }) => (
-                    <SkinCard
-                        imageUri={item.image}
-                        rarity={item.rarity}
+                {/* FlatList avec les items */}
+                <FlatList
+                    ref={flatListRef}
+                    data={skins || []}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    scrollEnabled={false}
+                    style={{ opacity: (containerWidth > 0 && skins) ? 1 : 0 }}
+                    getItemLayout={(data, index) => ({
+                        length: ITEM_WIDTH,
+                        offset: ITEM_WIDTH * index,
+                        index,
+                    })}
+                    renderItem={({ item, index }) => (
+                        <View style={styles.cardWrapper}>
+                            <SkinCard
+                                imageUri={item.image}
+                                rarity={item.rarity}
+                                isWinningItem={showWinEffect && index === WINNER_INDEX}
+                            />
+                        </View>
+                    )}
+                    keyExtractor={(item, index) => index.toString()}
+                    contentContainerStyle={{
+                        paddingHorizontal: containerWidth > 0
+                            ? (containerWidth / 2) - (ITEM_WIDTH / 2)
+                            : 0
+                    }}
+                />
+
+                {/* Gradients de fondu sur les côtés */}
+                <LinearGradient
+                    colors={[Colors.light.background, 'transparent']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[styles.gradientOverlay, styles.gradientLeft]}
+                    pointerEvents="none"
+                />
+                <LinearGradient
+                    colors={['transparent', Colors.light.background]}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                    style={[styles.gradientOverlay, styles.gradientRight]}
+                    pointerEvents="none"
+                />
+
+                {/* Effet de victoire */}
+                {showWinEffect && winnerColor && (
+                    <Animated.View
+                        style={[
+                            styles.winGlow,
+                            { backgroundColor: `${winnerColor}20` }
+                        ]}
                     />
                 )}
-                keyExtractor={(item, index) => index.toString()}
+            </View>
 
-                // Le padding dépend de la largeur. Si largeur 0, padding 0 (pas grave car invisible)
-                contentContainerStyle={{
-                    paddingHorizontal: containerWidth > 0 ? (containerWidth / 2) - (ITEM_WIDTH / 2) : 0
-                }}
-            />
 
-            <LinearGradient
-                colors={['#131519', 'transparent']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={[styles.gradientOverlay, { left: 0 }]}
-            />
-            <LinearGradient
-                colors={['transparent', '#131519']}
-                start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
-                style={[styles.gradientOverlay, { right: 0 }]}
-            />
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-
+    wrapper: {
         width: '100%',
+        alignItems: 'center',
+    },
+    titleContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 16,
+        paddingHorizontal: 20,
+    },
+    titleLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.light.border,
+    },
+    title: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.light.text_secondary,
+        textTransform: 'uppercase',
+        letterSpacing: 1,
+    },
+    container: {
+        width: '100%',
+
         justifyContent: 'center',
-        backgroundColor: Colors.light.tabIconDefault,
-        position: 'relative',
-        overflow: 'hidden',
     },
-    waitingMessage: {
+    backgroundGradient: {
+        ...StyleSheet.absoluteFillObject,
+    },
+    topBorder: {
         position: 'absolute',
-        zIndex: 10,
-        alignSelf: 'center',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 2,
+        zIndex: 20,
     },
-    centerLine: {
+    bottomBorder: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 2,
+        zIndex: 20,
+    },
+    centerLineContainer: {
         position: 'absolute',
         top: 0,
         bottom: 0,
         left: '50%',
         width: 2,
-        backgroundColor: '#EEB400',
-        zIndex: 50,
-        transform: [{ translateX: -1 }],
-        shadowColor: '#EEB400',
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1,
-        shadowRadius: 10,
-        elevation: 5,
+        marginLeft: -1,
+        zIndex: 15,
+        alignItems: 'center',
+    },
+    centerLine: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        width: 3,
+        borderRadius: 2,
+    },
+    centerLineGlow: {
+        position: 'absolute',
+        top: 12,
+        bottom: 12,
+        width: 1,
+        borderRadius: 6,
+        opacity: 0.3,
+    },
+    cardWrapper: {
+        marginVertical: 30,
+    },
+    waitingMessage: {
+        ...StyleSheet.absoluteFillObject,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: Colors.light.background_elevated,
+        zIndex: 10,
+    },
+    loadingDots: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 12,
+    },
+    dot: {
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: Colors.light.tint,
+    },
+    waitingText: {
+        fontSize: 14,
+        color: Colors.light.text_muted,
     },
     gradientOverlay: {
         position: 'absolute',
         top: 0,
         bottom: 0,
-        width: 60,
-        zIndex: 20,
+        width: 80,
+        zIndex: 15,
+    },
+    gradientLeft: {
+        left: 0,
+    },
+    gradientRight: {
+        right: 0,
+    },
+    winGlow: {
+        ...StyleSheet.absoluteFillObject,
+        zIndex: 5,
+    },
+    progressContainer: {
+        width: '80%',
+        marginTop: 12,
+    },
+    progressTrack: {
+        height: 3,
+        backgroundColor: Colors.light.background_elevated,
+        borderRadius: 2,
+        overflow: 'hidden',
+    },
+    progressBar: {
+        height: '100%',
+        backgroundColor: Colors.light.tint,
+        borderRadius: 2,
     },
 });
 
