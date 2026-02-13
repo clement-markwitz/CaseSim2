@@ -36,7 +36,7 @@ const LoginScreen = () => {
             return;
         }
         console.log("Connexion réussie");
-        router.push("/");
+        router.replace("/");
     };
 
     return (
