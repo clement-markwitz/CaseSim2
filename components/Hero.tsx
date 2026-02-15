@@ -63,7 +63,7 @@ const Hero = () => {
                 <View style={styles.authSection}>
                     <Text style={styles.authTitle}>Débloquez toutes les fonctionnalités</Text>
 
-                    <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8}>
+                    <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={() => router.push("/register")}>
                         <LinearGradient
                             colors={[Colors.light.tint, '#D4910A']}
                             start={{ x: 0, y: 0 }}

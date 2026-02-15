@@ -130,7 +130,7 @@ const LoginScreen = () => {
                         ) : (
                             <>
                                 <Text style={styles.loginButtonText}>Se connecter</Text>
-                                <Ionicons name="arrow-forward" size={20} color="#fff" />
+                                <Ionicons name="arrow-forward" size={20} color="black" />
                             </>
                         )}
                     </TouchableOpacity>
@@ -139,7 +139,7 @@ const LoginScreen = () => {
                 {/* Footer - Inscription */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Pas encore de compte ?</Text>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push("/register")}>
                         <Text style={styles.signupText}> Créer un compte</Text>
                     </TouchableOpacity>
                 </View>
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
         opacity: 0.7,
     },
     loginButtonText: {
-        color: "#fff",
+        color: "black",
         fontSize: 18,
         fontWeight: "bold",
     },
