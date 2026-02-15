@@ -1,7 +1,7 @@
+import { getErrorMessage } from '@/lib/errorMessages';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session, User, UserMetadata } from '@supabase/supabase-js';
 import { create } from 'zustand';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { supabase } from '../utils/supabase';
 interface AuthStore {
@@ -70,14 +70,8 @@ export const useAuthStore = create<AuthStore>()(
             },
           });
 
-          if (error) throw error;
+          throw new Error(getErrorMessage(error));
 
-          set({
-            session: data.session,
-            user: data.user,
-          });
-
-          return { error: null };
         } catch (error) {
           console.error('Sign up error:', error);
           return { error: error as Error };
