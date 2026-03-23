@@ -45,7 +45,7 @@ const RegisterScreen = () => {
             return;
         }
         console.log("Connexion réussie");
-        router.replace("/");
+        router.replace("/(auth)/InformationAccount");
     };
 
     useEffect(() => {

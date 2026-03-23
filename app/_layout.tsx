@@ -83,6 +83,7 @@ function RootLayoutNav() {
         >
           <Stack.Screen name="(public)/index" />
           <Stack.Screen name="(public)/case/[id]" />
+          <Stack.Screen name="(auth)/InformationAccount" />
         </Stack>
       </View>
     </ThemeProvider>
