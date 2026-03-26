@@ -3,13 +3,15 @@ import { useColorScheme } from '@/components/useColorScheme';
 import Colors from '@/constants/Colors';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { defaultConfig } from '@tamagui/config/v5';
+import { QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui'; // ✅ Ajouter
 import { useEffect } from 'react';
-import { View } from 'react-native'; // ✅ Ajouter
 import 'react-native-reanimated';
+import { createTamagui, TamaguiProvider, View } from 'tamagui';
 
 export {
   ErrorBoundary
@@ -68,23 +70,28 @@ function RootLayoutNav() {
       card: Colors.light.background,
     },
   };
-
+  const queryClient = useQueryClient()
+  const config = createTamagui(defaultConfig)
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
-      <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            // ✅ Fond de tous les écrans
-            contentStyle: {
-              backgroundColor: Colors.light.background
-            },
-          }}
-        >
-          <Stack.Screen name="(public)/index" />
-          <Stack.Screen name="(public)/case/[id]" />
-        </Stack>
-      </View>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <TamaguiProvider config={config} defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}>
+        <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
+          <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                // ✅ Fond de tous les écrans
+                contentStyle: {
+                  backgroundColor: Colors.light.background
+                },
+              }}
+            >
+              <Stack.Screen name="(public)/index" />
+              <Stack.Screen name="(public)/case/[id]" />
+            </Stack>
+          </View>
+        </ThemeProvider>
+      </TamaguiProvider>
+    </QueryClientProvider>
   );
 }
