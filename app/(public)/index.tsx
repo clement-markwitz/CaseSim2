@@ -6,8 +6,11 @@ import SearchBar from '@/components/ui/SearchBar';
 import Colors, { colorRarityBar } from '@/constants/Colors';
 import { useDemoStore } from '@/stores/demoStore';
 import { Ionicons } from '@expo/vector-icons';
+import { RefreshCcw } from '@tamagui/lucide-icons-2';
+import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
-import React, { useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
     Animated,
     Image,
@@ -18,6 +21,7 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Button, Spinner } from 'tamagui';
 
 // Composant pour les statistiques individuelles avec animation
 const StatCard = ({
@@ -219,6 +223,7 @@ const BestDropCard = ({ drop }: { drop: any }) => {
 
 const Home = () => {
     const { totalOpened, totalValue, bestDrop, getAverageValue, getProfit } = useDemoStore();
+    const { reset } = useQueryErrorResetBoundary();
     const displayColor = getProfit() >= 0
         ? '#00B894'
         : '#E74C3C';
@@ -313,9 +318,15 @@ const Home = () => {
                             {bestDrop && <BestDropCard drop={bestDrop} />}
                         </Animated.View>
                     )}
-
-                    <SearchBar />
-                    <CaseList />
+                    <ErrorBoundary
+                        onReset={reset}
+                        fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
+                    >
+                        <Suspense fallback={<Spinner size="large" color="$yellow" />}>
+                            <SearchBar />
+                            <CaseList />
+                        </Suspense>
+                    </ErrorBoundary>
                 </View>
             </ScrollView>
         </SafeAreaProvider>
