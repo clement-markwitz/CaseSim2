@@ -48,30 +48,30 @@ export default {
 // Raretés avec glow effects
 export const colorRarity: Record<string, string> = {
   gold: 'rgba(218, 164, 2, 0.4)',
-  covert: 'rgba(235, 75, 75, 0.4)',
-  classified: 'rgba(211, 44, 230, 0.4)',
-  restricted: 'rgba(136, 71, 255, 0.4)',
-  'mil-spec': 'rgba(75, 105, 255, 0.4)',
-  industrial: 'rgba(94, 152, 217, 0.4)',
-  consumer: 'rgba(176, 195, 217, 0.4)',
+  Covert: 'rgba(235, 75, 75, 0.4)',
+  Classified: 'rgba(211, 44, 230, 0.4)',
+  Restricted: 'rgba(136, 71, 255, 0.4)',
+  'Mil-Spec Grade': 'rgba(75, 105, 255, 0.4)',
+  Industrial: 'rgba(94, 152, 217, 0.4)',
+  Consumer: 'rgba(176, 195, 217, 0.4)',
 };
 
 export const colorRarityBar: Record<string, string> = {
   gold: '#FFD700',
-  covert: '#EB4B4B',
-  classified: '#D32CE6',
-  restricted: '#8847FF',
-  'mil-spec': '#4B69FF',
-  industrial: '#5E98D9',
-  consumer: '#B0C3D9',
+  Covert: '#EB4B4B',
+  Classified: '#D32CE6',
+  Restricted: '#8847FF',
+  'Mil-Spec Grade': '#4B69FF',
+  'Industrial Grade': '#5E98D9',
+  'Consumer Grade': '#B0C3D9',
 };
 
 export const colorRaritySolid: Record<string, string> = {
   gold: '#FFD700',
-  covert: '#EB4B4B',
-  classified: '#D32CE6',
-  restricted: '#8847FF',
-  'mil-spec': '#4B69FF',
-  industrial: '#5E98D9',
-  consumer: '#B0C3D9',
+  Covert: '#EB4B4B',
+  Classified: '#D32CE6',
+  Restricted: '#8847FF',
+  'Mil-Spec Grade': '#4B69FF',
+  'Industrial Grade': '#5E98D9',
+  'Consumer Grade': '#B0C3D9',
 };

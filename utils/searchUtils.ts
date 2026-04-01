@@ -38,14 +38,15 @@ const caseContainsSkin = (caseItem: Case, searchTerm: string): boolean => {
  * - Le nom des skins contenus
  * - Le nom des armes (ex: "AK-47", "AWP")
  */
-export const searchCases = (searchQuery: string): Case[] => {
+export const searchCases = (cases: Case[], searchQuery: string): Case[] => {
+    if (!cases) return [];
     if (!searchQuery || searchQuery.trim() === '') {
-        return CASES;
+        return cases;
     }
 
     const normalizedQuery = normalizeString(searchQuery.trim());
 
-    return CASES.filter(caseItem => {
+    return cases.filter(caseItem => {
         // 1️⃣ Recherche dans le nom de la caisse
         const caseName = normalizeString(caseItem.name);
         if (caseName.includes(normalizedQuery)) {
@@ -64,8 +65,8 @@ export const searchCases = (searchQuery: string): Case[] => {
 /**
  * Compte le nombre de résultats par catégorie
  */
-export const getSearchStats = (searchQuery: string) => {
-    const results = searchCases(searchQuery);
+export const getSearchStats = (cases: Case[], searchQuery: string) => {
+    const results = searchCases(cases, searchQuery);
 
     return {
         total: results.length,

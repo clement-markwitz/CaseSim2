@@ -254,4 +254,7 @@ buck-out/
 .buckversion
 .fakebuckversion
 
+### Claude setup ###
+.claude
+CLAUDE.md
 # End of https://www.toptal.com/developers/gitignore/api/reactnative

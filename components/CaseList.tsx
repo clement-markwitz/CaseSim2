@@ -1,5 +1,6 @@
 import { Case } from "@/constants/case";
 import Colors from "@/constants/Colors";
+import { useCases } from "@/hooks/useCases";
 import { useDemoStore } from "@/stores/demoStore";
 import { getSearchStats, searchCases } from "@/utils/searchUtils";
 import { ChevronRight, Package, Star, Sticker } from "lucide-react-native";
@@ -51,10 +52,10 @@ const CategorySection = ({ title, icon, cases, accentColor }: CategorySectionPro
 
 const CaseList = () => {
     const searchQuery = useDemoStore(state => state.searchQuery);
+    const { data: cases } = useCases();
 
-    // 🔍 Filtre les caisses selon la recherche
-    const filteredCases = searchCases(searchQuery);
-    const stats = getSearchStats(searchQuery);
+    const filteredCases = searchCases(cases || [], searchQuery);
+    const stats = getSearchStats(cases || [], searchQuery);
 
     const basiqueCases = filteredCases.filter((c) => c.type === 'basique');
     const souvenirCases = filteredCases.filter((c) => c.type === 'souvenir');
