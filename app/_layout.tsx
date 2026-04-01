@@ -4,14 +4,15 @@ import Colors from '@/constants/Colors';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { defaultConfig } from '@tamagui/config/v5';
-import { QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import * as SystemUI from 'expo-system-ui'; // ✅ Ajouter
+import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
+import { View } from 'react-native'; // 👈 On l'importe depuis React Native
 import 'react-native-reanimated';
-import { createTamagui, TamaguiProvider, View } from 'tamagui';
+import { createTamagui, TamaguiProvider } from 'tamagui';
 
 export {
   ErrorBoundary
@@ -22,9 +23,11 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
-
-// ✅ Set le background au niveau système immédiatement
 SystemUI.setBackgroundColorAsync(Colors.light.background);
+
+const tamaguiConfig = createTamagui(defaultConfig);
+
+const queryClient = new QueryClient();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -52,12 +55,11 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
-  // ✅ Créer un thème personnalisé avec ton background
   const CustomDarkTheme = {
     ...DarkTheme,
     colors: {
       ...DarkTheme.colors,
-      background: Colors.light.background, // Ta couleur de fond
+      background: Colors.light.background,
       card: Colors.light.background,
     },
   };
@@ -70,17 +72,15 @@ function RootLayoutNav() {
       card: Colors.light.background,
     },
   };
-  const queryClient = useQueryClient()
-  const config = createTamagui(defaultConfig)
+
   return (
     <QueryClientProvider client={queryClient}>
-      <TamaguiProvider config={config} defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}>
+      <TamaguiProvider config={tamaguiConfig} defaultTheme={colorScheme === 'dark' ? 'dark' : 'light'}>
         <ThemeProvider value={colorScheme === 'dark' ? CustomDarkTheme : CustomLightTheme}>
           <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
             <Stack
               screenOptions={{
                 headerShown: false,
-                // ✅ Fond de tous les écrans
                 contentStyle: {
                   backgroundColor: Colors.light.background
                 },
