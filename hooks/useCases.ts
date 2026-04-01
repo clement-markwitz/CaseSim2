@@ -6,7 +6,7 @@ export const useCases = () => {
         {
             queryKey: ['cases'],
             queryFn: fetchCasesWithSkinsId,
-            staleTime: 3600
+            staleTime: 1000 * 60 * 60
         }
     )
 }
