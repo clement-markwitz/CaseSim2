@@ -1,6 +1,5 @@
 // utils/gameLogic.ts
-import { CASES } from "@/constants/case";
-import { Skin, SKINS, Wear } from "@/constants/skin";
+import { Skin, Wear } from "@/constants/skin";
 
 export const WINNER_INDEX = 45;
 export const TOTAL_ITEMS = 55;
@@ -35,42 +34,44 @@ const isStatTrak = (skin: Skin): boolean => {
     return stattrakPourcentage <= 10;
 };
 
-export const skinDrop = (caseId: string): WonItem => {
-    const caseToOpen = CASES.find((c) => c.id === caseId);
-    if (!caseToOpen) {
-        throw new Error('Case not found');
+export const skinDrop = (skins: Skin[]): WonItem => {
+    // 🛡️ Sécurité : on vérifie que le tableau n'est pas vide
+    if (!skins || skins.length === 0) {
+        throw new Error("Aucun skin n'a été fourni pour le drop");
     }
 
+    // 1. Tirage du pourcentage de rareté
     const rarityPourcentage: number = getSecureRandom() * 100;
     let rarity: string;
 
     if (rarityPourcentage <= 0.26) {
         rarity = 'gold';
     } else if (rarityPourcentage <= 0.90) {
-        rarity = 'covert';
+        rarity = 'Covert';
     } else if (rarityPourcentage <= 4.10) {
-        rarity = 'classified';
+        rarity = 'Classified';
     } else if (rarityPourcentage <= 20.08) {
-        rarity = 'restricted';
+        rarity = 'Restricted';
     } else {
-        rarity = 'mil-spec';
+        rarity = 'Mil-Spec Grade';
     }
 
-    let possibleSkins: Skin[] = caseToOpen.skinIds
-        .map((skinId) => SKINS[skinId])
-        .filter((skin) => skin.rarity === rarity);
+    // 2. On filtre DIRECTEMENT sur le tableau `skins` passé en paramètre
+    let possibleSkins: Skin[] = skins.filter((skin) => skin.rarity === rarity);
 
+    // 3. Fallback si la rareté tirée n'existe pas dans cette caisse (ex: une caisse sans gold)
     if (possibleSkins.length === 0) {
-        possibleSkins = caseToOpen.skinIds
-            .map((id) => SKINS[id])
-            .filter((s) => s.rarity === 'mil-spec');
+        possibleSkins = skins.filter((s) => s.rarity === 'Mil-Spec Grade');
     }
 
+    // 4. On tire un skin au hasard parmi les possibles
     const skin = possibleSkins[Math.floor(getSecureRandom() * possibleSkins.length)];
+    // 5. Génération du float et du wear
     const float = getSecureRandom() * (skin.maxFloat - skin.minFloat) + skin.minFloat;
-    const wear = generateFloat(float);
-    const statTrak: boolean = isStatTrak(skin);
+    const wear = generateFloat(float); // J'imagine que tu as cette fonction ailleurs
+    const statTrak: boolean = isStatTrak(skin); // Idem
 
+    // 6. Calcul du prix
     let price: number;
     if (statTrak) {
         price = skin.prices.stattrak[wear];
@@ -78,6 +79,7 @@ export const skinDrop = (caseId: string): WonItem => {
         price = skin.prices.normal[wear];
     }
 
+    // 7. Retour de l'objet gagné
     return {
         uid: Math.random().toString(36).substring(2, 9),
         skinId: skin.id,
@@ -91,7 +93,7 @@ export const skinDrop = (caseId: string): WonItem => {
     };
 };
 
-export const generateRouletteTab = (caseId: string, winningItem: WonItem): WonItem[] => {
+export const generateRouletteTab = (skins: Skin[], winningItem: WonItem): WonItem[] => {
     const tab: WonItem[] = [];
 
 
@@ -100,7 +102,7 @@ export const generateRouletteTab = (caseId: string, winningItem: WonItem): WonIt
         if (i === WINNER_INDEX) {
             tab.push(winningItem);
         } else {
-            tab.push(skinDrop(caseId));
+            tab.push(skinDrop(skins));
         }
     }
 
