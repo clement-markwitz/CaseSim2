@@ -1,227 +1,167 @@
 // Hero.tsx
-import Colors from '@/constants/Colors';
 import { useAuth } from '@/hooks/useAuth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { ChevronRight, Sparkles, Trophy } from 'lucide-react-native';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Dimensions } from 'react-native';
+// On importe tout depuis Tamagui
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Text, XStack, YStack } from 'tamagui';
 
 const { width } = Dimensions.get('window');
 
 const Hero = () => {
     const { isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
+    const colors = useAppTheme();
     return (
-        <View style={styles.heroContainer}>
+        <YStack width={width - 32} marginTop={20} gap="$4">
+
             {/* Main Card */}
-            <LinearGradient
-                colors={[Colors.light.background_elevated, Colors.light.background_secondary]}
-                style={styles.mainCard}
+            <YStack
+                borderRadius={20}
+                overflow="hidden"
+                borderWidth={1}
+                borderColor={colors.border}
+                position="relative"
             >
+                {/* Background Gradient (Absolute) */}
+                <LinearGradient
+                    colors={[colors.background_elevated, colors.background_secondary]}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                />
+
                 {/* Decorative elements */}
-                <View style={styles.decorativeCircle} />
-                <View style={styles.decorativeCircle2} />
+                <YStack
+                    position="absolute"
+                    top={-50}
+                    right={-50}
+                    width={150}
+                    height={150}
+                    borderRadius={75}
+                    backgroundColor={colors.tint_glow}
+                    opacity={0.5}
+                />
+                <YStack
+                    position="absolute"
+                    bottom={-30}
+                    left={-30}
+                    width={100}
+                    height={100}
+                    borderRadius={50}
+                    backgroundColor="rgba(136, 71, 255, 0.2)"
+                    opacity={0.5}
+                />
 
                 {/* Content */}
-                <View style={styles.cardContent}>
-                    <View style={styles.badge}>
-                        <Sparkles size={14} color={Colors.light.tint} />
-                        <Text style={styles.badgeText}>SIMULATEUR CS2</Text>
-                    </View>
+                <YStack padding={24} gap="$4">
 
-                    <Text style={styles.mainTitle}>
+                    {/* Badge */}
+                    <XStack
+                        alignItems="center"
+                        alignSelf="flex-start"
+                        gap="$2"
+                        backgroundColor="rgba(245, 166, 35, 0.15)"
+                        paddingHorizontal={12}
+                        paddingVertical={6}
+                        borderRadius={20}
+                        borderWidth={1}
+                        borderColor="rgba(245, 166, 35, 0.3)"
+                    >
+                        <Sparkles size={14} color={colors.tint} />
+                        <Text fontSize={11} fontWeight="700" color={colors.tint} letterSpacing={1}>
+                            SIMULATEUR CS2
+                        </Text>
+                    </XStack>
+
+                    {/* Main Title */}
+                    <Text fontSize={28} fontWeight="800" color={colors.text} lineHeight={36}>
                         Ouvrez des caisses{'\n'}
-                        <Text style={styles.titleHighlight}>sans limites</Text>
+                        <Text color={colors.tint}>sans limites</Text>
                     </Text>
 
-                    <Text style={styles.description}>
+                    {/* Description */}
+                    <Text fontSize={15} color={colors.text_secondary} lineHeight={22}>
                         Testez votre chance et découvrez les skins les plus rares du jeu.
                         Aucun risque, que du fun !
                     </Text>
 
                     {/* Stats row */}
-                    <View style={styles.statsRow}>
-                        <View style={styles.statItem}>
-                            <Trophy size={16} color={Colors.light.tint} />
-                            <Text style={styles.statValue}>1.2M+</Text>
-                            <Text style={styles.statLabel}>Cases ouvertes</Text>
-                        </View>
-                        <View style={styles.statDivider} />
-                        {/* <View style={styles.statItem}>
-                            <Zap size={16} color={Colors.light.success} />
-                            <Text style={styles.statValue}>5K+</Text>
-                            <Text style={styles.statLabel}>Joueurs actifs</Text>
-                        </View> */}
-                    </View>
-                </View>
-            </LinearGradient>
+                    <XStack
+                        alignItems="center"
+                        justifyContent="center"
+                        backgroundColor={colors.background}
+                        borderRadius={12}
+                        padding={16}
+                        marginTop={8}
+                    >
+                        <YStack flex={1} alignItems="center" gap={4}>
+                            <Trophy size={16} color={colors.tint} />
+                            <Text fontSize={20} fontWeight="800" color={colors.text}>
+                                1.2M+
+                            </Text>
+                            <Text fontSize={12} color={colors.text_muted}>
+                                Cases ouvertes
+                            </Text>
+                        </YStack>
+                    </XStack>
+
+                </YStack>
+            </YStack>
 
             {/* Auth Section */}
             {isLoading ? (
-                <Text>Loading...</Text>
+                <Text textAlign="center">Loading...</Text>
             ) : (!isAuthenticated && (
-                <View style={styles.authSection}>
-                    <Text style={styles.authTitle}>Débloquez toutes les fonctionnalités</Text>
+                <YStack alignItems="center" gap="$3">
 
-                    <TouchableOpacity style={styles.primaryButton} activeOpacity={0.8} onPress={() => router.push("/register")}>
+                    <Text fontSize={14} color={colors.text_secondary} marginBottom={4}>
+                        Débloquez toutes les fonctionnalités
+                    </Text>
+
+                    {/* Primary Button */}
+                    <YStack
+                        width="100%"
+                        borderRadius={14}
+                        overflow="hidden"
+                        shadowColor={colors.tint}
+                        shadowOffset={{ width: 0, height: 4 }}
+                        shadowOpacity={0.3}
+                        shadowRadius={8}
+                        elevation={8}
+                        onPress={() => router.push("/register")}
+                        pressStyle={{ scale: 0.97, opacity: 0.8 }} // Remplace TouchableOpacity !
+                    >
                         <LinearGradient
-                            colors={[Colors.light.tint, '#D4910A']}
+                            colors={[colors.tint, '#D4910A']}
                             start={{ x: 0, y: 0 }}
                             end={{ x: 1, y: 1 }}
-                            style={styles.buttonGradient}
                         >
-                            <Text style={styles.primaryButtonText}>Créer un compte</Text>
-                            <ChevronRight size={20} color="#000" />
+                            <XStack alignItems="center" justifyContent="center" paddingVertical={16} gap={8}>
+                                <Text fontSize={16} fontWeight="700" color="#000">
+                                    Créer un compte
+                                </Text>
+                                <ChevronRight size={20} color="#000" />
+                            </XStack>
                         </LinearGradient>
-                    </TouchableOpacity>
+                    </YStack>
 
-                    <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.7} onPress={() => router.push("/(auth)/login")}>
-                        <Text style={styles.secondaryButtonText}>J'ai déjà un compte</Text>
-                    </TouchableOpacity>
-                </View>
+                    {/* Secondary Button */}
+                    <YStack
+                        paddingVertical={12}
+                        paddingHorizontal={24}
+                        onPress={() => router.push("/(auth)/login")}
+                        pressStyle={{ opacity: 0.5 }} // Remplace TouchableOpacity !
+                    >
+                        <Text fontSize={14} color={colors.text_secondary} textDecorationLine="underline">
+                            J'ai déjà un compte
+                        </Text>
+                    </YStack>
+
+                </YStack>
             ))}
-        </View>
+        </YStack>
     );
 };
-
-const styles = StyleSheet.create({
-    heroContainer: {
-        width: width - 32,
-        marginTop: 20,
-        gap: 20,
-    },
-    mainCard: {
-        borderRadius: 20,
-        overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-        position: 'relative',
-    },
-    decorativeCircle: {
-        position: 'absolute',
-        top: -50,
-        right: -50,
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        backgroundColor: Colors.light.tint_glow,
-        opacity: 0.5,
-    },
-    decorativeCircle2: {
-        position: 'absolute',
-        bottom: -30,
-        left: -30,
-        width: 100,
-        height: 100,
-        borderRadius: 50,
-        backgroundColor: 'rgba(136, 71, 255, 0.2)',
-        opacity: 0.5,
-    },
-    cardContent: {
-        padding: 24,
-        gap: 16,
-    },
-    badge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        alignSelf: 'flex-start',
-        gap: 6,
-        backgroundColor: 'rgba(245, 166, 35, 0.15)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(245, 166, 35, 0.3)',
-    },
-    badgeText: {
-        fontSize: 11,
-        fontWeight: '700',
-        color: Colors.light.tint,
-        letterSpacing: 1,
-    },
-    mainTitle: {
-        fontSize: 28,
-        fontWeight: '800',
-        color: Colors.light.text,
-        lineHeight: 36,
-    },
-    titleHighlight: {
-        color: Colors.light.tint,
-    },
-    description: {
-        fontSize: 15,
-        color: Colors.light.text_secondary,
-        lineHeight: 22,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.light.background,
-        borderRadius: 12,
-        padding: 16,
-        marginTop: 8,
-    },
-    statItem: {
-        flex: 1,
-        alignItems: 'center',
-        gap: 4,
-    },
-    statValue: {
-        fontSize: 20,
-        fontWeight: '800',
-        color: Colors.light.text,
-    },
-    statLabel: {
-        fontSize: 12,
-        color: Colors.light.text_muted,
-    },
-    statDivider: {
-        width: 1,
-        height: 40,
-        backgroundColor: Colors.light.border,
-    },
-    authSection: {
-        alignItems: 'center',
-        gap: 12,
-    },
-    authTitle: {
-        fontSize: 14,
-        color: Colors.light.text_secondary,
-        marginBottom: 4,
-    },
-    primaryButton: {
-        width: '100%',
-        borderRadius: 14,
-        overflow: 'hidden',
-        // Shadow
-        shadowColor: Colors.light.tint,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    buttonGradient: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 16,
-        gap: 8,
-    },
-    primaryButtonText: {
-        fontSize: 16,
-        fontWeight: '700',
-        color: '#000',
-    },
-    secondaryButton: {
-        paddingVertical: 12,
-        paddingHorizontal: 24,
-    },
-    secondaryButtonText: {
-        fontSize: 14,
-        color: Colors.light.text_secondary,
-        textDecorationLine: 'underline',
-    },
-});
 
 export default Hero;

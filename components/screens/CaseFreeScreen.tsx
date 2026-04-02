@@ -1,26 +1,20 @@
+// CaseFreeScreen.tsx
 import RouletteContainer from '@/components/RouletteContainer';
 import SkinsPreview from '@/components/ui/SkinsPreview';
-import Colors, { colorRaritySolid } from '@/constants/Colors';
+import { colorRaritySolid } from '@/constants/Colors';
 import { useCase } from '@/hooks/useCase';
 import { useSkins } from '@/hooks/useSkins';
 import { useDemoStore } from '@/stores/demoStore';
 import { generateRouletteTab, skinDrop, WonItem } from '@/utils/gameLogic';
-import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useNavigation } from 'expo-router';
 import { ArrowLeft, Box } from 'lucide-react-native';
 import { useEffect, useState } from 'react';
-import {
-  BackHandler,
-  Dimensions,
-  Image,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { BackHandler, Dimensions, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+// Importation des composants Tamagui
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { ScrollView, Text, XStack, YStack } from 'tamagui';
 
 const { width } = Dimensions.get('window');
 
@@ -33,8 +27,8 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   const { data: caseItem } = useCase(caseId);
   const { data: skins } = useSkins(caseId, caseItem?.skinIds ?? []);
   const navigation = useNavigation();
-  const { reset } = useQueryErrorResetBoundary();
 
+  const colors = useAppTheme();
   // Gestion des interactions avec le système
   useEffect(() => {
     // iOS - désactive swipe
@@ -77,71 +71,100 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Background gradient */}
       <LinearGradient
-        colors={[Colors.light.background, Colors.light.background_secondary]}
+        colors={[colors.background, colors.background_secondary]}
         style={StyleSheet.absoluteFill}
       />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()} disabled={isRolling}>
-          <ArrowLeft size={22} color={Colors.light.text} />
-        </TouchableOpacity>
-        <View style={styles.headerCenter}>
-          <Text style={styles.headerTitle}>{caseItem?.name}</Text>
-          <View style={styles.priceBadge}>
-            <Text style={styles.priceText}>${caseItem?.price.toFixed(2)}</Text>
-          </View>
-        </View>
-        <View style={styles.placeholder} />
-      </View>
+      <XStack alignItems="center" justifyContent="space-between" paddingHorizontal={16} paddingVertical={12}>
+        {/* Bouton Retour Animé */}
+        <YStack
+          width={44}
+          height={44}
+          borderRadius={12}
+          backgroundColor={colors.background_elevated}
+          alignItems="center"
+          justifyContent="center"
+          borderWidth={1}
+          borderColor={colors.border}
+          onPress={() => router.back()}
+          disabled={isRolling}
+          opacity={isRolling ? 0.5 : 1}
+          pressStyle={{ scale: 0.9 }}
+        >
+          <ArrowLeft size={22} color={colors.text} />
+        </YStack>
+
+        <YStack alignItems="center" gap={4}>
+          <Text fontSize={18} fontWeight="700" color={colors.text}>
+            {caseItem?.name}
+          </Text>
+          <YStack backgroundColor={colors.background_elevated} paddingHorizontal={12} paddingVertical={4} borderRadius={8}>
+            <Text fontSize={13} fontWeight="600" color={colors.success}>
+              ${caseItem?.price.toFixed(2)}
+            </Text>
+          </YStack>
+        </YStack>
+
+        {/* Placeholder pour centrer le titre */}
+        <YStack width={44} />
+      </XStack>
+
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Case Preview */}
+        {/* Case Preview (Avant ouverture) */}
         {!isActive && (
-          <View style={styles.casePreview}>
-            <View style={styles.caseImageContainer}>
+          <YStack alignItems="center" paddingTop={20}>
+            {/* Image de la caisse */}
+            <YStack width={200} height={160} alignItems="center" justifyContent="center" position="relative">
               <LinearGradient
-                colors={[Colors.light.tint_glow, 'transparent']}
-                style={styles.caseGlow}
+                colors={[colors.tint_glow, 'transparent']}
+                style={{ position: 'absolute', width: 180, height: 180, borderRadius: 90, opacity: 0.6 }}
               />
               <Image
                 source={{ uri: caseItem?.image }}
-                style={styles.caseImage}
+                style={{ width: 160, height: 120 }}
                 resizeMode="contain"
               />
-            </View>
+            </YStack>
 
-            {/* Contents preview */}
-            <View style={styles.contentsSection}>
-              <View style={styles.contentsTitleRow}>
-                <Box size={18} color={Colors.light.text_secondary} />
-                <Text style={styles.contentsTitle}>Contenu de la caisse</Text>
-              </View>
+            {/* Contents preview (Liste des skins) */}
+            <YStack
+              width={width - 32}
+              marginTop={24}
+              backgroundColor={colors.background_card}
+              borderRadius={16}
+              padding={16}
+              borderWidth={1}
+              borderColor={colors.border}
+            >
+              <XStack alignItems="center" gap={8} marginBottom={16}>
+                <Box size={18} color={colors.text_secondary} />
+                <Text fontSize={14} fontWeight="600" color={colors.text_secondary}>
+                  Contenu de la caisse
+                </Text>
+              </XStack>
+
               <ScrollView
-                style={styles.skinsScrollView}
-                contentContainerStyle={styles.skinsScrollContent}
+                maxHeight={250}
+                contentContainerStyle={{ paddingBottom: 10 }}
                 showsVerticalScrollIndicator={true}
                 nestedScrollEnabled={true}
-                scrollEnabled={true}
               >
-
-
                 <SkinsPreview skins={skins} />
-
-
               </ScrollView>
-            </View>
-          </View>
+            </YStack>
+          </YStack>
         )}
 
-        {/* Roulette */}
+        {/* Roulette (Pendant / Après ouverture) */}
         {isActive && (
-          <View style={styles.rouletteSection}>
+          <YStack paddingTop={20} alignItems="center">
             <RouletteContainer
               skins={rouletteSkins}
               onComplete={handleRollComplete}
@@ -149,229 +172,59 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
 
             {/* Result display */}
             {finalResult && !isRolling && (
-              <View style={styles.resultContainer}>
+              <YStack width={width - 32} marginTop={20}>
                 <LinearGradient
-                  colors={[
-                    Colors.light.background_elevated,
-                    Colors.light.background_card
-                  ]}
-                  style={styles.resultCard}
+                  colors={[colors.background_elevated, colors.background_card]}
+                  style={{ borderRadius: 16, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: colors.border }}
                 >
-                  <Text style={[
-                    styles.resultName,
-                    { color: colorRaritySolid[finalResult.rarity] }
-                  ]}>
+                  <Text fontSize={20} fontWeight="700" textAlign="center" color={colorRaritySolid[finalResult.rarity]}>
                     {finalResult.name}
                   </Text>
-                  <Text style={finalResult.statTrak ? styles.resultWearStatTrak : styles.resultWear}>
+
+                  <Text fontSize={14} marginTop={10} color={finalResult.statTrak ? '#e05409' : colors.text_muted}>
                     {finalResult.wear}{finalResult.statTrak && ' | ST'}
                   </Text>
-                  <Text style={styles.resultPrice}>
+
+                  <Text fontSize={24} fontWeight="800" color={colors.tint} marginTop={6}>
                     ${finalResult.price.toFixed(2)}
                   </Text>
                 </LinearGradient>
-              </View>
+              </YStack>
             )}
-          </View>
+          </YStack>
         )}
 
         {/* Open Button */}
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[
-              styles.openButton,
-              isRolling && styles.openButtonDisabled
-            ]}
+        <YStack alignItems="center" marginTop={32} paddingHorizontal={16}>
+          <YStack
+            width="100%"
+            borderRadius={14}
+            overflow="hidden"
+            shadowColor={colors.tint}
+            shadowOffset={{ width: 0, height: 4 }}
+            shadowOpacity={isRolling ? 0 : 0.4}
+            shadowRadius={12}
+            elevation={isRolling ? 0 : 8}
             onPress={handleOpenCase}
             disabled={isRolling}
-            activeOpacity={0.85}
+            pressStyle={{ scale: isRolling ? 1 : 0.97 }} // Pas d'animation si ça roule
           >
             <LinearGradient
               colors={isRolling
-                ? [Colors.light.text_muted, Colors.light.text_muted]
-                : [Colors.light.tint, '#D4910A']
+                ? [colors.text_muted, colors.text_muted]
+                : [colors.tint, '#D4910A']
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.buttonGradient}
+              style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 18, gap: 10 }}
             >
-              <Text style={styles.buttonText}>
+              <Text fontSize={18} fontWeight="700" color="#000">
                 {isRolling ? 'Ouverture...' : 'Ouvrir la caisse'}
               </Text>
             </LinearGradient>
-          </TouchableOpacity>
-        </View>
+          </YStack>
+        </YStack>
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.light.background,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  backButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: Colors.light.background_elevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  headerCenter: {
-    alignItems: 'center',
-    gap: 4,
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: Colors.light.text,
-  },
-  priceBadge: {
-    backgroundColor: Colors.light.background_elevated,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  priceText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Colors.light.success,
-  },
-  placeholder: {
-    width: 44,
-  },
-  scrollContent: {
-    paddingBottom: 40,
-  },
-  casePreview: {
-    alignItems: 'center',
-    paddingTop: 20,
-  },
-  caseImageContainer: {
-    width: 200,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  caseGlow: {
-    position: 'absolute',
-    width: 180,
-    height: 180,
-    borderRadius: 90,
-    opacity: 0.6,
-  },
-  caseImage: {
-    width: 160,
-    height: 120,
-  },
-  contentsSection: {
-    width: width - 32,
-    marginTop: 24,
-    backgroundColor: Colors.light.background_card,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  skinsScrollView: {
-    maxHeight: 250,
-  },
-  skinsScrollContent: {
-    paddingBottom: 10,
-  },
-  contentsTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 16,
-  },
-  contentsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: Colors.light.text_secondary,
-  },
-  rouletteSection: {
-    paddingTop: 20,
-    alignItems: 'center',
-  },
-  resultContainer: {
-    width: width - 32,
-    marginTop: 20,
-  },
-  resultCard: {
-    borderRadius: 16,
-    padding: 20,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: Colors.light.border,
-  },
-  resultName: {
-    fontSize: 20,
-    fontWeight: '700',
-    textAlign: 'center',
-  },
-  resultWear: {
-    fontSize: 14,
-    color: Colors.light.text_muted,
-    marginTop: 10,
-  },
-  resultWearStatTrak: {
-    fontSize: 14,
-    color: '#e05409',
-    marginTop: 10,
-  },
-  resultPrice: {
-    fontSize: 24,
-    fontWeight: '800',
-    color: Colors.light.tint,
-    marginTop: 6,
-  },
-  buttonContainer: {
-    alignItems: 'center',
-    marginTop: 32,
-    paddingHorizontal: 16,
-  },
-  openButton: {
-    width: '100%',
-    borderRadius: 14,
-    overflow: 'hidden',
-    shadowColor: Colors.light.tint,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 12,
-    elevation: 8,
-  },
-  openButtonDisabled: {
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  buttonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 18,
-    gap: 10,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#000',
-  },
-  freeText: {
-    fontSize: 13,
-    color: Colors.light.text_muted,
-    marginTop: 12,
-  },
-});

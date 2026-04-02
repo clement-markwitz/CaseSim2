@@ -1,19 +1,14 @@
 // RouletteContainer.tsx
-import Colors, { colorRarityBar } from '@/constants/Colors';
+import { colorRarityBar } from '@/constants/Colors';
 import { WonItem } from '@/utils/gameLogic';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useEffect, useRef, useState } from 'react';
-import {
-    Animated,
-    Easing,
-    FlatList,
-    LayoutChangeEvent,
-    StyleSheet,
-    Text,
-    View,
-} from 'react-native';
+// On garde les imports natifs pour la liste et les animations
+import { Animated, Easing, FlatList, LayoutChangeEvent } from 'react-native';
+// On importe Tamagui pour la structure UI
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { Text, XStack, YStack } from 'tamagui';
 import SkinCard from './SkinCard';
-
 // --- CONSTANTES ---
 const ITEM_WIDTH = 158; // Largeur d'un item (150) + margins (8)
 const WINNER_INDEX = 45; // L'index du gagnant dans le tableau
@@ -33,7 +28,7 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
     const [isRolling, setIsRolling] = useState(false);
     const [showWinEffect, setShowWinEffect] = useState(false);
     const [revealedWinnerColor, setRevealedWinnerColor] = useState<string | null>(null);
-
+    const colors = useAppTheme();
     // Animation du curseur central (pulse)
     useEffect(() => {
         const pulse = Animated.loop(
@@ -59,7 +54,7 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
         }
 
         return () => pulse.stop();
-    }, [isRolling]);
+    }, [isRolling, pulseAnim]);
 
     // Animation glow pendant le roll
     useEffect(() => {
@@ -79,7 +74,7 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
                 ])
             ).start();
         }
-    }, [isRolling]);
+    }, [isRolling, glowAnim]);
 
     // Fonction principale de lancement
     const startRoll = () => {
@@ -110,9 +105,6 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
                     setRevealedWinnerColor(colorRarityBar[winnerSkin.rarity]);
                 }
 
-                // Vibration feedback (si disponible)
-                // Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-
                 if (onComplete) {
                     onComplete();
                 }
@@ -131,7 +123,7 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
             }
         });
         return () => scrollX.removeListener(listener);
-    }, []);
+    }, [scrollX]);
 
     // Trigger au changement de skins
     useEffect(() => {
@@ -154,82 +146,83 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
         }
     };
 
-    const winnerColor = revealedWinnerColor || Colors.light.tint;
+    const winnerColor = revealedWinnerColor || colors.tint;
 
     return (
-        <View style={styles.wrapper}>
-            {/* Titre de section */}
-            <View style={styles.titleContainer}>
-                <View style={styles.titleLine} />
-            </View>
+        <YStack width="100%" alignItems="center">
+
+            {/* Ligne décorative au dessus de la roulette */}
+            <XStack alignItems="center" gap={12} marginBottom={16} paddingHorizontal={20} width="100%">
+                <YStack flex={1} height={1} backgroundColor={colors.border} />
+            </XStack>
 
             {/* Container principal */}
-            <View style={styles.container} onLayout={onLayout}>
+            <YStack width="100%" justifyContent="center" onLayout={onLayout} position="relative">
+
                 {/* Background décoratif */}
                 <LinearGradient
                     colors={[
-                        Colors.light.background,
-                        Colors.light.background_elevated,
-                        Colors.light.background,
+                        colors.background,
+                        colors.background_elevated,
+                        colors.background,
                     ]}
-                    style={styles.backgroundGradient}
+                    style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 />
 
-                {/* Bordure supérieure lumineuse */}
+                {/* Bordures lumineuses (Haut et Bas) */}
                 <Animated.View
-                    style={[
-                        styles.topBorder,
-                        {
-                            opacity: glowAnim,
-                            backgroundColor: isRolling ? Colors.light.tint : winnerColor
-                        }
-                    ]}
+                    style={{
+                        position: 'absolute', top: 0, left: 0, right: 0, height: 2, zIndex: 20,
+                        opacity: glowAnim,
+                        backgroundColor: isRolling ? colors.tint : winnerColor
+                    }}
                 />
-
-                {/* Bordure inférieure lumineuse */}
                 <Animated.View
-                    style={[
-                        styles.bottomBorder,
-                        {
-                            opacity: glowAnim,
-                            backgroundColor: isRolling ? Colors.light.tint : winnerColor
-                        }
-                    ]}
+                    style={{
+                        position: 'absolute', bottom: 0, left: 0, right: 0, height: 2, zIndex: 20,
+                        opacity: glowAnim,
+                        backgroundColor: isRolling ? colors.tint : winnerColor
+                    }}
                 />
 
                 {/* Curseur central animé */}
-                <View style={styles.centerLineContainer}>
+                <YStack
+                    position="absolute" top={0} bottom={0} left="50%"
+                    width={2} marginLeft={-1} zIndex={15} alignItems="center"
+                >
                     <Animated.View
-                        style={[
-                            styles.centerLine,
-                            {
-                                transform: [{ scaleY: pulseAnim }],
-                                backgroundColor: showWinEffect ? winnerColor : Colors.light.tint,
-                            }
-                        ]}
+                        style={{
+                            position: 'absolute', top: 0, bottom: 0, width: 3, borderRadius: 2,
+                            transform: [{ scaleY: pulseAnim }],
+                            backgroundColor: showWinEffect ? winnerColor : colors.tint,
+                        }}
                     />
                     <Animated.View
-                        style={[
-                            styles.centerLineGlow,
-                            {
-                                opacity: pulseAnim,
-                                backgroundColor: showWinEffect ? winnerColor : Colors.light.tint,
-                            }
-                        ]}
+                        style={{
+                            position: 'absolute', top: 12, bottom: 12, width: 1, borderRadius: 6,
+                            opacity: pulseAnim,
+                            backgroundColor: showWinEffect ? winnerColor : colors.tint,
+                        }}
                     />
+                </YStack>
 
-                </View>
-
-                {/* Message d'attente */}
+                {/* Message d'attente (Affiché uniquement si pas de skins) */}
                 {(!skins || skins.length === 0) && (
-                    <View style={styles.waitingMessage}>
-                        <View style={styles.loadingDots}>
-                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
-                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
-                            <Animated.View style={[styles.dot, { opacity: glowAnim }]} />
-                        </View>
-                        <Text style={styles.waitingText}>Préparation...</Text>
-                    </View>
+                    <YStack
+                        position="absolute" top={0} left={0} right={0} bottom={0}
+                        alignItems="center" justifyContent="center"
+                        backgroundColor={colors.background_elevated} zIndex={10}
+                    >
+                        <XStack gap={8} marginBottom={12}>
+                            {[1, 2, 3].map((key) => (
+                                <Animated.View
+                                    key={key}
+                                    style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: colors.tint, opacity: glowAnim }}
+                                />
+                            ))}
+                        </XStack>
+                        <Text fontSize={14} color={colors.text_muted}>Préparation...</Text>
+                    </YStack>
                 )}
 
                 {/* FlatList avec les items */}
@@ -246,13 +239,13 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
                         index,
                     })}
                     renderItem={({ item, index }) => (
-                        <View style={styles.cardWrapper}>
+                        <YStack marginVertical={30}>
                             <SkinCard
                                 imageUri={item.image}
                                 rarity={item.rarity}
                                 isWinningItem={showWinEffect && index === WINNER_INDEX}
                             />
-                        </View>
+                        </YStack>
                     )}
                     keyExtractor={(item, index) => index.toString()}
                     contentContainerStyle={{
@@ -264,166 +257,32 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
 
                 {/* Gradients de fondu sur les côtés */}
                 <LinearGradient
-                    colors={[Colors.light.background, 'transparent']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[styles.gradientOverlay, styles.gradientLeft]}
+                    colors={[colors.background, 'transparent']}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={{ position: 'absolute', top: 0, bottom: 0, left: 0, width: 80, zIndex: 15 }}
                     pointerEvents="none"
                 />
                 <LinearGradient
-                    colors={['transparent', Colors.light.background]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={[styles.gradientOverlay, styles.gradientRight]}
+                    colors={['transparent', colors.background]}
+                    start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }}
+                    style={{ position: 'absolute', top: 0, bottom: 0, right: 0, width: 80, zIndex: 15 }}
                     pointerEvents="none"
                 />
 
-                {/* Effet de victoire */}
+                {/* Effet de victoire (Flash coloré de fond) */}
                 {showWinEffect && winnerColor && (
                     <Animated.View
-                        style={[
-                            styles.winGlow,
-                            { backgroundColor: `${winnerColor}20` }
-                        ]}
+                        style={{
+                            position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+                            zIndex: 5,
+                            backgroundColor: `${winnerColor}20`
+                        }}
                     />
                 )}
-            </View>
 
-
-        </View>
+            </YStack>
+        </YStack>
     );
 };
-
-const styles = StyleSheet.create({
-    wrapper: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    titleContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-        marginBottom: 16,
-        paddingHorizontal: 20,
-    },
-    titleLine: {
-        flex: 1,
-        height: 1,
-        backgroundColor: Colors.light.border,
-    },
-    title: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: Colors.light.text_secondary,
-        textTransform: 'uppercase',
-        letterSpacing: 1,
-    },
-    container: {
-        width: '100%',
-
-        justifyContent: 'center',
-    },
-    backgroundGradient: {
-        ...StyleSheet.absoluteFillObject,
-    },
-    topBorder: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 2,
-        zIndex: 20,
-    },
-    bottomBorder: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        height: 2,
-        zIndex: 20,
-    },
-    centerLineContainer: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: '50%',
-        width: 2,
-        marginLeft: -1,
-        zIndex: 15,
-        alignItems: 'center',
-    },
-    centerLine: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        width: 3,
-        borderRadius: 2,
-    },
-    centerLineGlow: {
-        position: 'absolute',
-        top: 12,
-        bottom: 12,
-        width: 1,
-        borderRadius: 6,
-        opacity: 0.3,
-    },
-    cardWrapper: {
-        marginVertical: 30,
-    },
-    waitingMessage: {
-        ...StyleSheet.absoluteFillObject,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: Colors.light.background_elevated,
-        zIndex: 10,
-    },
-    loadingDots: {
-        flexDirection: 'row',
-        gap: 8,
-        marginBottom: 12,
-    },
-    dot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: Colors.light.tint,
-    },
-    waitingText: {
-        fontSize: 14,
-        color: Colors.light.text_muted,
-    },
-    gradientOverlay: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        width: 80,
-        zIndex: 15,
-    },
-    gradientLeft: {
-        left: 0,
-    },
-    gradientRight: {
-        right: 0,
-    },
-    winGlow: {
-        ...StyleSheet.absoluteFillObject,
-        zIndex: 5,
-    },
-    progressContainer: {
-        width: '80%',
-        marginTop: 12,
-    },
-    progressTrack: {
-        height: 3,
-        backgroundColor: Colors.light.background_elevated,
-        borderRadius: 2,
-        overflow: 'hidden',
-    },
-    progressBar: {
-        height: '100%',
-        backgroundColor: Colors.light.tint,
-        borderRadius: 2,
-    },
-});
 
 export default RouletteContainer;
