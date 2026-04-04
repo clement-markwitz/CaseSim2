@@ -3,6 +3,7 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { createAnimations } from '@tamagui/animations-react-native';
 import { defaultConfig } from '@tamagui/config/v5';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
@@ -14,6 +15,7 @@ import { View } from 'react-native';
 import 'react-native-reanimated';
 import { createTamagui, TamaguiProvider } from 'tamagui';
 
+
 export { ErrorBoundary } from 'expo-router';
 
 export const unstable_settings = {
@@ -22,9 +24,31 @@ export const unstable_settings = {
 
 SplashScreen.preventAutoHideAsync();
 
-const tamaguiConfig = createTamagui(defaultConfig);
+
 const queryClient = new QueryClient();
 
+const tamaguiConfig = createTamagui({
+  ...defaultConfig,
+  animations: createAnimations({
+    bouncy: {
+      type: 'spring',
+      damping: 10,
+      mass: 0.9,
+      stiffness: 100,
+    },
+    quick: {
+      type: 'spring',
+      damping: 20,
+      mass: 1.2,
+      stiffness: 250,
+    },
+    lazy: {
+      type: 'spring',
+      damping: 20,
+      stiffness: 60,
+    },
+  })
+});
 export default function RootLayout() {
   const colors = useAppTheme(); // 👈 Le hook est bien DANS le composant
 
@@ -93,6 +117,7 @@ function RootLayoutNav() {
               <Stack.Screen name="(public)/index" />
               <Stack.Screen name="(public)/case/[id]" />
               <Stack.Screen name="(auth)/InformationAccount" />
+              <Stack.Screen name="(auth)/profileMe" />
             </Stack>
           </View>
         </ThemeProvider>
