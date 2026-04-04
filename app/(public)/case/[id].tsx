@@ -1,4 +1,4 @@
-import CaseFreeScreen from '@/components/screens/CaseFreeScreen';
+import CaseFreeScreen from '@/screens/CaseFreeScreen';
 import { RefreshCcw } from '@tamagui/lucide-icons-2';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { useLocalSearchParams } from 'expo-router';
