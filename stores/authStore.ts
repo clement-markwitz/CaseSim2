@@ -3,6 +3,7 @@ import { Session, User, UserMetadata } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { supabase } from '../utils/supabase';
+import { useDemoStore } from './demoStore';
 interface AuthStore {
   session?: Session | null;
   user?: User | null;
@@ -29,6 +30,10 @@ export const useAuthStore = create<AuthStore>()(
       initialize: async () => {
         if (get().isInitialized) {
           console.log('⚠️ [AUTH] Already initializing or initialized');
+
+          if (!get().isLoggedIn) {
+            useDemoStore.getState().setMode("demo");
+          }
           return;
         }
         try {
@@ -46,6 +51,13 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             isLoggedIn: !!session,
           })
+          supabase.auth.onAuthStateChange((_event, newSession) => {
+            set({
+              session: newSession,
+              user: newSession?.user,
+              isLoggedIn: !!newSession,
+            });
+          });
         } catch (error) {
           console.error('Error initializing auth:', error);
           set({
@@ -53,6 +65,7 @@ export const useAuthStore = create<AuthStore>()(
             isLoggedIn: false,
             isInitialized: true,
           })
+          useDemoStore.getState().setMode("demo");
         }
       },
       signUp: async (email: string, password: string, username?: string) => {
@@ -114,6 +127,7 @@ export const useAuthStore = create<AuthStore>()(
 
       // 🚪 Déconnexion
       signOut: async () => {
+        const { setMode } = useDemoStore();
         try {
           set({ isLoading: true });
           await supabase.auth.signOut();
@@ -125,6 +139,7 @@ export const useAuthStore = create<AuthStore>()(
         } catch (error) {
           console.error('Sign out error:', error);
         } finally {
+          setMode("demo");
           set({ isLoading: false });
         }
       },

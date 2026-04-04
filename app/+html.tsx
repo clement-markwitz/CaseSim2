@@ -1,10 +1,12 @@
-import Colors from '@/constants/Colors';
+
+import { useAppTheme } from '@/hooks/useAppTheme';
 import { ScrollViewStyleReset } from 'expo-router/html';
 // This file is web-only and used to configure the root HTML for every
 // web page during static rendering.
 // The contents of this function only run in Node.js environments and
 // do not have access to the DOM or browser APIs.
 export default function Root({ children }: { children: React.ReactNode }) {
+  const colors = useAppTheme();
   return (
     <html lang="en">
       <head>
@@ -22,7 +24,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <style dangerouslySetInnerHTML={{ __html: responsiveBackground }} />
         {/* Add any additional <head> elements that you want globally available on web... */}
       </head>
-      <body style={{ backgroundColor: Colors.light.background }}>{children}</body>
+      <body style={{ backgroundColor: colors.background }}>{children}</body>
     </html>
   );
 }

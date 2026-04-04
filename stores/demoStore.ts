@@ -33,6 +33,10 @@ interface DemoStore {
     getAverageValue: () => number;
     getTotalByRarity: () => Record<string, number>;
     getProfit: () => number;
+
+    // mode
+    mode: 'demo' | 'real';
+    setMode: (mode: 'demo' | 'real') => void;
 }
 
 export const useDemoStore = create<DemoStore>()(
@@ -90,10 +94,14 @@ export const useDemoStore = create<DemoStore>()(
             // 🔍 Recherche
             searchQuery: '',
             setSearchQuery: (query) => set({ searchQuery: query.toLowerCase() }),
+
+            // mode
+            mode: 'demo',
+            setMode: (mode) => set({ mode }),
         }),
 
         {
-            name: 'cs2-demo-storage', // Nom de la clé dans AsyncStorage
+            name: 'cs2-demo-storage-v2', // Nom de la clé dans AsyncStorage
             storage: createJSONStorage(() => AsyncStorage),
             partialize: (state) => ({
                 totalOpened: state.totalOpened,
@@ -101,6 +109,7 @@ export const useDemoStore = create<DemoStore>()(
                 lastDrops: state.lastDrops,
                 bestDrop: state.bestDrop,
                 priceCase: state.priceCase,
+                mode: state.mode,
             }),
         }
     )

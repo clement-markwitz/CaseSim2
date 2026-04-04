@@ -1,19 +1,14 @@
+// RegisterScreen.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-    ActivityIndicator,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
-} from "react-native";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Colors from "../../constants/Colors";
+import { useAppTheme } from "../../hooks/useAppTheme";
 import { useAuth } from "../../hooks/useAuth";
+
+// Importation de Tamagui
+import { Input, Spinner, Text, XStack, YStack } from "tamagui";
 
 const RegisterScreen = () => {
     const [email, setEmail] = useState("");
@@ -26,7 +21,7 @@ const RegisterScreen = () => {
     const [passwordWarning, setPasswordWarning] = useState("");
     const [disabled, setDisabled] = useState(true);
     const { signUp, isLoading } = useAuth();
-
+    const colors = useAppTheme();
     const handleRegister = async () => {
         setError("");
 
@@ -44,7 +39,7 @@ const RegisterScreen = () => {
             setError(authError.message);
             return;
         }
-        console.log("Connexion réussie");
+        console.log("Inscription réussie");
         router.replace("/(auth)/InformationAccount");
     };
 
@@ -55,80 +50,137 @@ const RegisterScreen = () => {
             setDisabled(false);
         }
     }, [passwordWarning, confirmPassword, email, password, username, isLoading]);
+
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
             <KeyboardAvoidingView
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                style={styles.keyboardView}
+                style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24 }}
             >
                 {/* Header avec icône */}
-                <View style={styles.header}>
-                    <View style={styles.iconContainer}>
-                        <Ionicons name="cube" size={60} color={Colors.light.tint} />
-                    </View>
-                    <Text style={styles.title}>Case Simulator</Text>
-                    <Text style={styles.subtitle}>Connecte-toi pour continuer</Text>
-                </View>
+                <YStack alignItems="center" marginBottom={40}>
+                    <YStack
+                        width={100}
+                        height={100}
+                        borderRadius={30}
+                        backgroundColor={colors.background_card}
+                        justifyContent="center"
+                        alignItems="center"
+                        marginBottom={20}
+                        borderWidth={2}
+                        borderColor={colors.tint + '40'}
+                    >
+                        <Ionicons name="cube" size={60} color={colors.tint} />
+                    </YStack>
+                    <Text fontSize={32} fontWeight="bold" color={colors.text} marginBottom={8}>
+                        Case Simulator
+                    </Text>
+                    <Text fontSize={16} color={colors.text_secondary}>
+                        Crée ton compte pour commencer
+                    </Text>
+                </YStack>
 
-                {/* Formulaire */}
-                <View style={styles.form}>
+                {/* Formulaire (YStack avec gap=16 gère l'espacement) */}
+                <YStack width="100%" gap={16}>
+
                     {/* Message d'erreur */}
                     {error ? (
-                        <View style={styles.errorContainer}>
+                        <XStack
+                            alignItems="center"
+                            backgroundColor="#ff475720"
+                            paddingHorizontal={16}
+                            paddingVertical={12}
+                            borderRadius={12}
+                            borderWidth={1}
+                            borderColor="#ff475750"
+                        >
                             <Ionicons name="alert-circle" size={18} color="#ff4757" />
-                            <Text style={styles.errorText}>{error}</Text>
-                        </View>
+                            <Text color="#ff4757" marginLeft={8} fontSize={14}>
+                                {error}
+                            </Text>
+                        </XStack>
                     ) : null}
+
                     {/* Username */}
-                    <View style={styles.inputContainer}>
-                        <Ionicons
-                            name="person-outline"
-                            size={20}
-                            color={Colors.light.text_secondary}
-                            style={styles.inputIcon}
-                        />
-                        <TextInput
-                            style={styles.input}
+                    <XStack
+                        alignItems="center"
+                        backgroundColor={colors.background_card}
+                        borderRadius={16}
+                        borderWidth={1}
+                        borderColor={colors.background_card}
+                        paddingLeft={16}
+                    >
+                        <Ionicons name="person-outline" size={20} color={colors.text_secondary} />
+                        <Input
+                            flex={1}
+                            backgroundColor="transparent"
+                            borderWidth={0}
+                            color={colors.text}
+                            fontSize={16}
+                            height={55}
+                            paddingVertical={10}
+                            paddingHorizontal={12}
                             placeholder="Nom d'utilisateur"
-                            placeholderTextColor={Colors.light.text_secondary}
+                            placeholderTextColor={colors.text_secondary as any}
                             value={username}
                             onChangeText={setUsername}
                             autoCapitalize="none"
                             autoComplete="username"
+                            focusStyle={{ borderColor: 'transparent' }}
                         />
-                    </View>
+                    </XStack>
+
                     {/* Email */}
-                    <View style={styles.inputContainer}>
-                        <Ionicons
-                            name="mail-outline"
-                            size={20}
-                            color={Colors.light.text_secondary}
-                            style={styles.inputIcon}
-                        />
-                        <TextInput
-                            style={styles.input}
+                    <XStack
+                        alignItems="center"
+                        backgroundColor={colors.background_card}
+                        borderRadius={16}
+                        borderWidth={1}
+                        borderColor={colors.background_card}
+                        paddingLeft={16}
+                    >
+                        <Ionicons name="mail-outline" size={20} color={colors.text_secondary} />
+                        <Input
+                            flex={1}
+                            backgroundColor="transparent"
+                            borderWidth={0}
+                            color={colors.text}
+                            fontSize={16}
+                            height={55}
+                            paddingVertical={10}
+                            paddingHorizontal={12}
                             placeholder="Email"
-                            placeholderTextColor={Colors.light.text_secondary}
+                            placeholderTextColor={colors.text_secondary as any}
                             value={email}
                             onChangeText={setEmail}
                             keyboardType="email-address"
                             autoCapitalize="none"
                             autoComplete="email"
+                            focusStyle={{ borderColor: 'transparent' }}
                         />
-                    </View>
+                    </XStack>
 
                     {/* Mot de passe */}
-                    <View style={styles.inputContainer}>
-                        <Ionicons
-                            name="lock-closed-outline"
-                            size={20}
-                            color={Colors.light.text_secondary}
-                            style={styles.inputIcon}
-                        />
-                        <TextInput
-                            style={styles.input}
+                    <XStack
+                        alignItems="center"
+                        backgroundColor={colors.background_card}
+                        borderRadius={16}
+                        borderWidth={1}
+                        borderColor={colors.background_card}
+                        paddingLeft={16}
+                    >
+                        <Ionicons name="lock-closed-outline" size={20} color={colors.text_secondary} />
+                        <Input
+                            flex={1}
+                            backgroundColor="transparent"
+                            borderWidth={0}
+                            color={colors.text}
+                            fontSize={16}
+                            height={55}
+                            paddingVertical={10}
+                            paddingHorizontal={12}
                             placeholder="Mot de passe"
-                            placeholderTextColor={Colors.light.text_secondary}
+                            placeholderTextColor={colors.text_secondary as any}
                             value={password}
                             onChangeText={(text) => {
                                 setPassword(text);
@@ -150,40 +202,58 @@ const RegisterScreen = () => {
                                         }
                                     }
                                 }
-
                             }}
                             secureTextEntry={secureTextEntry}
                             autoCapitalize="none"
+                            focusStyle={{ borderColor: 'transparent' }}
                         />
-                        <TouchableOpacity
-                            onPress={() => setSecureTextEntry(!secureTextEntry)}
-                            style={styles.eyeButton}
-                        >
+                        <YStack padding={16} onPress={() => setSecureTextEntry(!secureTextEntry)}>
                             <Ionicons
                                 name={secureTextEntry ? "eye-outline" : "eye-off-outline"}
                                 size={22}
-                                color={Colors.light.text_secondary}
+                                color={colors.text_secondary}
                             />
-                        </TouchableOpacity>
-                    </View>
+                        </YStack>
+                    </XStack>
+
+                    {/* Warning Mot de passe */}
                     {passwordWarning ? (
-                        <View style={styles.warningContainer}>
-                            <Ionicons name="alert-circle" size={18} color={"#eb9f3b"} />
-                            <Text style={styles.warningText}>{passwordWarning}</Text>
-                        </View>
+                        <XStack
+                            alignItems="center"
+                            backgroundColor="#4b2a00ff"
+                            paddingHorizontal={16}
+                            paddingVertical={12}
+                            borderRadius={12}
+                            borderWidth={1}
+                            borderColor="#eb9f3b"
+                        >
+                            <Ionicons name="alert-circle" size={18} color="#eb9f3b" />
+                            <Text color="#eb9f3b" marginLeft={8} fontSize={14}>
+                                {passwordWarning}
+                            </Text>
+                        </XStack>
                     ) : null}
+
                     {/* Confirm Password */}
-                    <View style={styles.inputContainer}>
-                        <Ionicons
-                            name="lock-closed-outline"
-                            size={20}
-                            color={Colors.light.text_secondary}
-                            style={styles.inputIcon}
-                        />
-                        <TextInput
-                            style={styles.input}
+                    <XStack
+                        alignItems="center"
+                        backgroundColor={colors.background_card}
+                        borderRadius={16}
+                        borderWidth={1}
+                        borderColor={colors.background_card}
+                        paddingLeft={16}
+                    >
+                        <Ionicons name="lock-closed-outline" size={20} color={colors.text_secondary} />
+                        <Input
+                            flex={1}
+                            backgroundColor="transparent"
+                            borderWidth={0}
+                            color={colors.text}
+                            fontSize={16}
+                            paddingVertical={10}
+                            paddingHorizontal={12}
                             placeholder="Confirmer le mot de passe"
-                            placeholderTextColor={Colors.light.text_secondary}
+                            placeholderTextColor={colors.text_secondary as any}
                             value={confirmPassword}
                             onChangeText={(text) => {
                                 setConfirmPassword(text);
@@ -193,194 +263,68 @@ const RegisterScreen = () => {
                                     } else {
                                         setPasswordWarning("");
                                     }
-                                }
-                                else {
+                                } else {
                                     setPasswordWarning("");
                                 }
                             }}
                             secureTextEntry={secureTextEntryComfirm}
                             autoCapitalize="none"
+                            focusStyle={{ borderColor: 'transparent' }}
                         />
-                        <TouchableOpacity
-                            onPress={() => setSecureTextEntryComfirm(!secureTextEntryComfirm)}
-                            style={styles.eyeButton}
-                        >
+                        <YStack padding={16} onPress={() => setSecureTextEntryComfirm(!secureTextEntryComfirm)}>
                             <Ionicons
                                 name={secureTextEntryComfirm ? "eye-outline" : "eye-off-outline"}
                                 size={22}
-                                color={Colors.light.text_secondary}
+                                color={colors.text_secondary}
                             />
-                        </TouchableOpacity>
-                    </View>
-                    {/* Bouton Register */}
-                    <TouchableOpacity
-                        style={disabled ? [styles.registerButton, styles.registerButtonDisabled] : styles.registerButton}
-                        onPress={handleRegister}
+                        </YStack>
+                    </XStack>
+
+                    {/* Bouton S'inscrire */}
+                    <XStack
+                        alignItems="center"
+                        justifyContent="center"
+                        backgroundColor={colors.tint}
+                        paddingVertical={16}
+                        borderRadius={16}
+                        gap={8}
+                        opacity={disabled ? 0.7 : 1}
                         disabled={disabled}
-                        activeOpacity={0.8}
+                        onPress={handleRegister}
+                        pressStyle={{ scale: disabled ? 1 : 0.97, opacity: disabled ? 0.7 : 0.8 }}
                     >
                         {isLoading ? (
-                            <ActivityIndicator color="#fff" size="small" />
+                            <Spinner color="#fff" />
                         ) : (
                             <>
-                                <Text style={styles.registerButtonText}>S'inscrire</Text>
+                                <Text color="black" fontSize={18} fontWeight="bold">
+                                    S'inscrire
+                                </Text>
                                 <Ionicons name="arrow-forward" size={20} color="black" />
                             </>
                         )}
-                    </TouchableOpacity>
-                </View>
+                    </XStack>
+                </YStack>
 
-                {/* Footer - Inscription */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>Vous avez déjà un compte ?</Text>
-                    <TouchableOpacity onPress={() => router.push("/login")}>
-                        <Text style={styles.signupText}> Se connecter</Text>
-                    </TouchableOpacity>
-                </View>
+                {/* Footer - Connexion */}
+                <XStack justifyContent="center" marginTop={32} gap={4}>
+                    <Text color={colors.text_secondary} fontSize={14}>
+                        Vous avez déjà un compte ?
+                    </Text>
+                    <Text
+                        color={colors.tint}
+                        fontSize={14}
+                        fontWeight="600"
+                        onPress={() => router.push("/login")}
+                        pressStyle={{ opacity: 0.5 }}
+                    >
+                        Se connecter
+                    </Text>
+                </XStack>
+
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.light.background,
-    },
-    keyboardView: {
-        flex: 1,
-        justifyContent: "center",
-        paddingHorizontal: 24,
-    },
-
-    // Header
-    header: {
-        alignItems: "center",
-        marginBottom: 40,
-    },
-    iconContainer: {
-        width: 100,
-        height: 100,
-        borderRadius: 30,
-        backgroundColor: Colors.light.background_card,
-        justifyContent: "center",
-        alignItems: "center",
-        marginBottom: 20,
-        borderWidth: 2,
-        borderColor: Colors.light.tint + '40',
-    },
-    title: {
-        fontSize: 32,
-        fontWeight: "bold",
-        color: Colors.light.text,
-        marginBottom: 8,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: Colors.light.text_secondary,
-    },
-
-    // Form
-    form: {
-        width: "100%",
-    },
-    errorContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#ff475720",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: "#ff475750",
-    },
-    warningContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "#4b2a00ff",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderRadius: 12,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: "#eb9f3b",
-    },
-    errorText: {
-        color: "#ff4757",
-        marginLeft: 8,
-        fontSize: 14,
-    },
-    warningText: {
-        color: "#eb9f3b",
-        marginLeft: 8,
-        fontSize: 14,
-    },
-    inputContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: Colors.light.background_card,
-        borderRadius: 16,
-        marginBottom: 16,
-        borderWidth: 1,
-        borderColor: Colors.light.background_card,
-    },
-    inputIcon: {
-        paddingLeft: 16,
-    },
-    input: {
-        flex: 1,
-        paddingVertical: 16,
-        paddingHorizontal: 12,
-        fontSize: 16,
-        color: Colors.light.text,
-    },
-    eyeButton: {
-        padding: 16,
-    },
-    forgotButton: {
-        alignSelf: "flex-end",
-        marginBottom: 24,
-    },
-    forgotText: {
-        color: Colors.light.tint,
-        fontSize: 14,
-    },
-
-    // register Button
-    registerButton: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: Colors.light.tint,
-        paddingVertical: 16,
-        borderRadius: 16,
-        gap: 8,
-    },
-    registerButtonDisabled: {
-        opacity: 0.7,
-    },
-    registerButtonText: {
-        color: "black",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-
-    // Footer
-    footer: {
-        flexDirection: "row",
-        justifyContent: "center",
-        marginTop: 32,
-    },
-    footerText: {
-        color: Colors.light.text_secondary,
-        fontSize: 14,
-    },
-    signupText: {
-        color: Colors.light.tint,
-        fontSize: 14,
-        fontWeight: "600",
-    },
-});
 
 export default RegisterScreen;

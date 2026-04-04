@@ -1,140 +1,146 @@
 // Header.tsx
-import Colors from '@/constants/Colors';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfileMe } from '@/hooks/useProfileMe';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Menu } from 'lucide-react-native';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+// On importe tout depuis tamagui !
+import { useAppTheme } from '@/hooks/useAppTheme';
+import { useDemoStore } from '@/stores/demoStore';
+import { useRouter } from 'expo-router';
+import { Image } from 'react-native';
+import { Avatar, Switch, Text, XStack, YStack } from 'tamagui';
 
 const Header = () => {
     const insets = useSafeAreaInsets();
     const { signOut, isAuthenticated } = useAuth();
-
+    const { data: profile } = useProfileMe();
+    const colors = useAppTheme();
+    const { setMode, mode } = useDemoStore();
+    const router = useRouter();
     return (
-        <View style={[styles.wrapper, { paddingTop: insets.top }]}>
+        <YStack
+            backgroundColor={colors.background}
+            position="relative"
+            width="100%"
+            paddingHorizontal={20}
+            paddingTop={insets.top}
+        >
+            {/* Background Gradient (Expo LinearGradient est parfait ici) */}
             <LinearGradient
-                colors={[Colors.light.background_secondary, 'transparent']}
-                style={styles.gradient}
+                colors={[colors.background_secondary, 'transparent']}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 120 }}
             />
-            <View style={styles.container}>
-                {/* Menu Button */}
-                <TouchableOpacity style={styles.iconButton} onPress={() => signOut()} disabled={!isAuthenticated}>
-                    <Menu size={22} color={Colors.light.text_secondary} />
-                </TouchableOpacity>
 
-                {/* Logo & Title */}
-                <View style={styles.logoContainer}>
-                    <View style={styles.logoGlow}>
-                        <Image
-                            style={styles.logo}
-                            source={require('@/assets/images/logo.png')}
-                        />
-                    </View>
-                    <View style={styles.titleContainer}>
-                        <Text style={styles.title}>CASE</Text>
-                        <Text style={styles.titleAccent}>SIMULATOR</Text>
-                    </View>
-                </View>
+            {/* Container principal (XStack = flexDirection: 'row') */}
+            <XStack
+                alignItems="center"
+                justifyContent="space-between"
+                paddingHorizontal={10}
+                paddingVertical={12}
+            >
+
+                {/* GAUCHE : Logo & Titre */
+                    mode === 'demo' && (
+                        <XStack alignItems="center" gap="$2">
+                            <YStack
+                                borderRadius={12}
+                                backgroundColor={colors.tint_glow}
+                            >
+                                <Image
+                                    source={require('@/assets/images/logo.png')}
+                                    style={{
+                                        width: 36,
+                                        height: 36,
+                                        borderRadius: 10
+                                    }}
+                                />
+                            </YStack>
+
+                            <XStack alignItems="baseline" gap={4} >
+                                <Text fontSize={18} fontWeight="800" color={colors.text} letterSpacing={2}>
+                                    CASE
+                                </Text>
+                                <Text fontSize={18} fontWeight="800" color={colors.tint} letterSpacing={2}>
+                                    SIMULATOR
+                                </Text>
+                            </XStack>
+                        </XStack>
+                    )}
+                {mode === 'real' && profile && (
+                    <XStack alignItems="center" gap="$2">
+
+                        {/* Gestion de l'avatar : s'il y a une URL, on l'affiche, sinon on met un carré de remplacement */}
+
+                        <Avatar
+                            onPress={() => router.push('/(auth)/profileMe')}
+                            size={36}
+                            borderRadius={10}
+                            backgroundColor={colors.background_elevated}
+                        >
+                            <Avatar.Image
+                                src={profile.avatar}
+                            />
+                            <Avatar.Fallback
+                                backgroundColor={colors.background_elevated}
+                                alignItems="center"
+                                justifyContent="center"
+                                borderRadius={100}
+                            >
+                                <Text color={colors.text_muted} fontSize={16} fontWeight="bold">
+                                    {profile.username.charAt(0).toUpperCase() || '?'}
+                                </Text>
+                            </Avatar.Fallback>
+                        </Avatar>
 
 
-            </View>
+                        {/* Pseudo */}
+                        <Text fontSize={18} fontWeight="800" color={colors.text} letterSpacing={2}>
+                            {profile.username}
+                        </Text>
+
+                        {/* Balance */}
+                        <Text fontSize={18} fontWeight="800" color={colors.tint} letterSpacing={2}>
+                            {profile.balance} $
+                        </Text>
+
+                    </XStack>
+                )}
+                {/* DROITE : Changer de mode */}
+                {isAuthenticated && (
+                    <XStack alignItems="center" gap="$2">
+                        <Text
+                            fontSize={12}
+                            fontWeight="700"
+                            color={colors.text}
+                            opacity={0.6}
+                            textTransform="uppercase"
+                        >
+                            Mode
+                        </Text>
+                        <Switch
+                            size="$3"
+                            backgroundColor={colors.background_elevated}
+                            checked={mode === 'demo'}
+                            transition="quick"
+                            // 👇 On utilise onCheckedChange, qui renvoie directement le nouveau statut (true/false)
+                            onCheckedChange={(isChecked) => setMode(isChecked ? 'demo' : 'real')}
+                        >
+                            <Switch.Thumb backgroundColor={colors.tint} transition="quick" />
+                        </Switch>
+                    </XStack>
+                )}
+
+            </XStack>
 
             {/* Bottom separator */}
             <LinearGradient
-                colors={['transparent', Colors.light.tint, 'transparent']}
+                colors={['transparent', colors.tint, 'transparent']}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.separator}
+                style={{ height: 1, opacity: 0.3 }}
             />
-        </View>
+        </YStack>
     );
 };
-
-const styles = StyleSheet.create({
-    wrapper: {
-        backgroundColor: Colors.light.background,
-        position: 'relative',
-        width: '100%',
-        paddingHorizontal: 20,
-    },
-    gradient: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 120,
-    },
-    container: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
-    logoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-    },
-    logoGlow: {
-        padding: 2,
-        borderRadius: 12,
-        backgroundColor: Colors.light.tint_glow,
-    },
-    logo: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-    },
-    titleContainer: {
-        flexDirection: 'row',
-        alignItems: 'baseline',
-        gap: 4,
-    },
-    title: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: Colors.light.text,
-        letterSpacing: 2,
-    },
-    titleAccent: {
-        fontSize: 18,
-        fontWeight: '800',
-        color: Colors.light.tint,
-        letterSpacing: 2,
-    },
-    iconButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 12,
-        backgroundColor: Colors.light.background_elevated,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-    },
-    notificationBadge: {
-        position: 'absolute',
-        top: -4,
-        right: -4,
-        backgroundColor: Colors.light.error,
-        borderRadius: 10,
-        minWidth: 18,
-        height: 18,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 2,
-        borderColor: Colors.light.background,
-    },
-    badgeText: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#fff',
-    },
-    separator: {
-        height: 1,
-        opacity: 0.3,
-    },
-});
 
 export default Header;
