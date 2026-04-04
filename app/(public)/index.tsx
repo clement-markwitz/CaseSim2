@@ -277,9 +277,17 @@ const Home = () => {
 
     return (
         <SafeAreaProvider>
+            <ErrorBoundary
+                onReset={reset}
+                fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
+            >
+                <Suspense fallback={<Spinner />}>
+                    <Header />
+                </Suspense>
+            </ErrorBoundary>
             <ScrollView flex={1} backgroundColor={colors.background} showsVerticalScrollIndicator={false}>
                 <YStack flex={1} backgroundColor={colors.background} alignItems="center" justifyContent="flex-start" paddingBottom={40}>
-                    <Header />
+
                     <Hero />
 
                     {/* Section Statistiques */}
