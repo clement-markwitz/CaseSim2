@@ -5,7 +5,7 @@ import { colorRaritySolid } from '@/constants/Colors';
 import { useCase } from '@/hooks/useCase';
 import { useSkins } from '@/hooks/useSkins';
 import { useDemoStore } from '@/stores/demoStore';
-import { generateRouletteTab, skinDrop, WonItem } from '@/utils/gameLogic';
+import { generateRouletteTab, WonItem } from '@/utils/gameLogic';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useNavigation } from 'expo-router';
 import { ArrowLeft, Box } from 'lucide-react-native';
@@ -14,6 +14,10 @@ import { BackHandler, Dimensions, Image, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 // Importation des composants Tamagui
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useOpenCase } from '@/hooks/useOpenCase';
+import { useProfileMe } from '@/hooks/useProfileMe';
+import { skinDrop } from '@/utils/gameLogic';
+import { Wallet } from 'lucide-react-native';
 import { ScrollView, Text, XStack, YStack } from 'tamagui';
 
 const { width } = Dimensions.get('window');
@@ -27,8 +31,10 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   const { data: caseItem } = useCase(caseId);
   const { data: skins } = useSkins(caseId, caseItem?.skinIds ?? []);
   const navigation = useNavigation();
-
+  const { mutateAsync: openCase } = useOpenCase();
   const colors = useAppTheme();
+  const { mode } = useDemoStore();
+  const { data: profile } = useProfileMe();
   // Gestion des interactions avec le système
   useEffect(() => {
     // iOS - désactive swipe
@@ -43,13 +49,34 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
     return () => backHandler.remove();
   }, [isRolling, navigation]);
 
-  // Gestion du bouton "ouvrir la caisse"
-  const handleOpenCase = () => {
+  const handleOpenCaseReal = async () => {
     if (isRolling) return;
 
+    setIsRolling(true);
+
+    try {
+      const winner = await openCase({ caseId: caseItem?.id, casePrice: caseItem?.price || 0 });
+
+      useDemoStore.getState().addDrop(winner, caseItem?.price || 0);
+      setFinalResult(winner);
+      const visualTab = generateRouletteTab(skins, winner);
+      setRouletteSkins(visualTab);
+
+      setIsActive(true);
+
+    } catch (error) {
+      console.error(error);
+      setIsRolling(false);
+      // Optionnel : Afficher un Toast/Alert "Pas assez d'argent"
+    }
+  };
+
+
+  const handleOpenCaseDemo = async () => {
+    if (isRolling) return;
+    const winner = skinDrop(skins)
     setIsActive(true);
     setIsRolling(true);
-    const winner = skinDrop(skins);
     useDemoStore.getState().addDrop(winner, caseItem?.price || 0);
     setFinalResult(winner);
 
@@ -79,38 +106,69 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
       />
 
       {/* Header */}
-      <XStack alignItems="center" justifyContent="space-between" paddingHorizontal={16} paddingVertical={12}>
-        {/* Bouton Retour Animé */}
-        <YStack
-          width={44}
-          height={44}
-          borderRadius={12}
-          backgroundColor={colors.background_elevated}
-          alignItems="center"
-          justifyContent="center"
-          borderWidth={1}
-          borderColor={colors.border}
-          onPress={() => router.back()}
-          disabled={isRolling}
-          opacity={isRolling ? 0.5 : 1}
-          pressStyle={{ scale: 0.9 }}
-        >
-          <ArrowLeft size={22} color={colors.text} />
-        </YStack>
+      <XStack alignItems="center" paddingHorizontal={16} paddingVertical={12} width="100%">
 
+        {/* ZONE GAUCHE (flex=1 pour pousser le centre) */}
+        <XStack flex={1} justifyContent="flex-start">
+          <YStack
+            width={44}
+            height={44}
+            borderRadius={12}
+            backgroundColor={colors.background_elevated}
+            alignItems="center"
+            justifyContent="center"
+            borderWidth={1}
+            borderColor={colors.border}
+            onPress={() => router.back()}
+            disabled={isRolling}
+            opacity={isRolling ? 0.5 : 1}
+            pressStyle={{ scale: 0.9 }}
+          >
+            <ArrowLeft size={22} color={colors.text} />
+          </YStack>
+        </XStack>
+
+        {/* ZONE CENTRE (Titre et Prix) */}
         <YStack alignItems="center" gap={4}>
           <Text fontSize={18} fontWeight="700" color={colors.text}>
             {caseItem?.name}
           </Text>
-          <YStack backgroundColor={colors.background_elevated} paddingHorizontal={12} paddingVertical={4} borderRadius={8}>
+          <YStack
+            backgroundColor={colors.background_elevated}
+            paddingHorizontal={12}
+            paddingVertical={4}
+            borderRadius={8}
+          >
             <Text fontSize={13} fontWeight="600" color={colors.success}>
-              ${caseItem?.price.toFixed(2)}
+              ${caseItem?.price?.toFixed(2)}
             </Text>
           </YStack>
         </YStack>
 
-        {/* Placeholder pour centrer le titre */}
-        <YStack width={44} />
+        {/* ZONE DROITE (flex=1 pour aligner à droite et équilibrer le flex gauche) */}
+        <XStack flex={1} justifyContent="flex-end">
+          {mode === 'real' && (
+            <XStack
+              borderRadius={20} // Forme de "pilule" (pill)
+              backgroundColor={`${colors.success}15`} // Fond vert avec 15% d'opacité
+              alignItems="center"
+              justifyContent="center"
+              paddingHorizontal={12}
+              paddingVertical={8}
+              borderWidth={1}
+              borderColor={`${colors.success}40`} // Bordure verte subtile
+              gap={6} // Espace entre l'icône et le texte
+              pressStyle={{ scale: 0.95, opacity: 0.8 }} // Petit effet au clic (si tu veux ouvrir une modal d'achat plus tard)
+            >
+              <Wallet size={14} color={colors.success} />
+              <Text fontSize={14} fontWeight="800" color={colors.success}>
+                {/* Formatage propre pour toujours avoir 2 chiffres après la virgule */}
+                ${Number(profile?.balance || 0).toFixed(2)}
+              </Text>
+            </XStack>
+          )}
+        </XStack>
+
       </XStack>
 
       <ScrollView
@@ -181,8 +239,8 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
                     {finalResult.name}
                   </Text>
 
-                  <Text fontSize={14} marginTop={10} color={finalResult.statTrak ? '#e05409' : colors.text_muted}>
-                    {finalResult.wear}{finalResult.statTrak && ' | ST'}
+                  <Text fontSize={14} marginTop={10} color={finalResult.isStattrak ? '#e05409' : colors.text_muted}>
+                    {finalResult.wear}{finalResult.isStattrak && ' | ST'}
                   </Text>
 
                   <Text fontSize={24} fontWeight="800" color={colors.tint} marginTop={6}>
@@ -205,7 +263,7 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
             shadowOpacity={isRolling ? 0 : 0.4}
             shadowRadius={12}
             elevation={isRolling ? 0 : 8}
-            onPress={handleOpenCase}
+            onPress={mode === 'real' ? handleOpenCaseReal : handleOpenCaseDemo}
             disabled={isRolling}
             pressStyle={{ scale: isRolling ? 1 : 0.97 }} // Pas d'animation si ça roule
           >

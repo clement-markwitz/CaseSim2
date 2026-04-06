@@ -39,7 +39,6 @@ const RegisterScreen = () => {
             setError(authError.message);
             return;
         }
-        console.log("Inscription réussie");
         router.replace("/(auth)/InformationAccount");
     };
 
