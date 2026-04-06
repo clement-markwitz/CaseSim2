@@ -12,7 +12,8 @@ export interface WonItem {
     rarity: string;
     wear: Wear;
     float: number;
-    statTrak: boolean;
+    isStattrak: boolean;
+    isSouvenir: boolean;
     price: number;
 }
 
@@ -28,10 +29,10 @@ const generateFloat = (float: number): Wear => {
     return 'BS';
 };
 
-const isStatTrak = (skin: Skin): boolean => {
+const getIsStatTrak = (skin: Skin): boolean => {
     if (skin.name.includes('gants')) return false;
-    const stattrakPourcentage: number = getSecureRandom() * 100;
-    return stattrakPourcentage <= 10;
+    const statTrakPourcentage: number = getSecureRandom() * 100;
+    return statTrakPourcentage <= 10;
 };
 
 export const skinDrop = (skins: Skin[]): WonItem => {
@@ -69,11 +70,11 @@ export const skinDrop = (skins: Skin[]): WonItem => {
     // 5. Génération du float et du wear
     const float = getSecureRandom() * (skin.maxFloat - skin.minFloat) + skin.minFloat;
     const wear = generateFloat(float); // J'imagine que tu as cette fonction ailleurs
-    const statTrak: boolean = isStatTrak(skin); // Idem
+    const isStattrak: boolean = getIsStatTrak(skin); // Idem
 
     // 6. Calcul du prix
     let price: number;
-    if (statTrak) {
+    if (isStattrak) {
         price = skin.prices.stattrak[wear];
     } else {
         price = skin.prices.normal[wear];
@@ -88,7 +89,8 @@ export const skinDrop = (skins: Skin[]): WonItem => {
         rarity: skin.rarity,
         wear,
         float,
-        statTrak,
+        isStattrak,
+        isSouvenir: false,
         price,
     };
 };

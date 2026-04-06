@@ -236,7 +236,7 @@ const BestDropCard = ({ drop }: { drop: any }) => {
                             <XStack alignItems="center" gap={4} marginBottom={10}>
                                 <Ionicons name="sparkles" size={12} color={colors.text_muted} />
                                 <Text fontSize={12} color={colors.text_muted} fontWeight="500">
-                                    {drop.wear} {drop.statTrak && '| ST'}
+                                    {drop.wear} {drop.isStattrak && '| ST'}
                                 </Text>
                             </XStack>
                         )}

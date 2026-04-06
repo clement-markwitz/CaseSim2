@@ -1,6 +1,5 @@
 // Case.tsx
 import { Case } from "@/constants/case";
-import { colorRaritySolid } from "@/constants/Colors";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 // Import de Tamagui
@@ -13,7 +12,6 @@ const CaseView = ({ caseItem }: { caseItem: Case }) => {
     const colors = useAppTheme();
     // Déterminer la rareté maximale dans la caisse pour le style
     const maxRarity = 'gold';
-    const accentColor = colorRaritySolid[maxRarity] || colors.tint;
     return (
         <YStack
             width={165}
@@ -30,7 +28,7 @@ const CaseView = ({ caseItem }: { caseItem: Case }) => {
         >
             {/* Glow effect background (Expo LinearGradient est parfait ici) */}
             <LinearGradient
-                colors={[`${accentColor}20`, 'transparent']}
+                colors={[`${colors.tint}20`, 'transparent']}
                 style={{
                     position: 'absolute',
                     top: '50%',
@@ -101,7 +99,7 @@ const CaseView = ({ caseItem }: { caseItem: Case }) => {
 
                 {/* Bottom accent line */}
                 <LinearGradient
-                    colors={['transparent', accentColor, 'transparent']}
+                    colors={['transparent', colors.tint, 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 2 }}
