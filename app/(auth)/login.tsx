@@ -30,7 +30,6 @@ const LoginScreen = () => {
             setError(authError.message || "Erreur de connexion");
             return;
         }
-        console.log("Connexion réussie");
         router.replace("/");
     };
 
