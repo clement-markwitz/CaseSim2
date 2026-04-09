@@ -73,8 +73,8 @@ export const colorRarity: Record<string, string> = {
   Classified: 'rgba(211, 44, 230, 0.4)',
   Restricted: 'rgba(136, 71, 255, 0.4)',
   'Mil-Spec Grade': 'rgba(75, 105, 255, 0.4)',
-  Industrial: 'rgba(94, 152, 217, 0.4)',
-  Consumer: 'rgba(176, 195, 217, 0.4)',
+  'Industrial Grade': 'rgba(94, 152, 217, 0.4)',
+  'Consumer Grade': 'rgba(176, 195, 217, 0.4)',
 };
 
 export const colorRarityBar: Record<string, string> = {
