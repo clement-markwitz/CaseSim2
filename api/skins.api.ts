@@ -27,7 +27,8 @@ export const fetchInventory = async (userId: string): Promise<InventorySkin[]> =
     const { data, error } = await supabase
         .from('inventory_items')
         .select('id, skins (id, name, image, rarity, min_float, max_float, prices), wear, price, float_value, is_stattrak, is_souvenir, type, status')
-        .eq('owner_id', userId);
+        .eq('owner_id', userId)
+        .eq('status', 'inventory');
 
     if (error) throw new Error(error.message);
 
