@@ -15,6 +15,19 @@ export interface Skin {
   };
 }
 
+export interface InventorySkin {
+  id: number;
+  owner_id: string;
+  skins: Skin;
+  wear: Wear;
+  price: number;
+  float_value: number;
+  isStatTrak: boolean;
+  isSouvenir: boolean;
+  type: string;
+  status: string;
+}
+
 export const SKINS: Record<string, Skin> = {
   //case kilowatt
   'skin_ak_inheritance': {
