@@ -30,7 +30,7 @@ interface FetchInventoryParams {
 }
 
 export const fetchInventory = async ({ userId, pageParam, filters }: FetchInventoryParams): Promise<InventorySkin[]> => {
-    const limit = 4;
+    const limit = 25;
     const from = pageParam * limit;
     const to = from + limit - 1;
 
