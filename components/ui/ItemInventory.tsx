@@ -2,26 +2,24 @@ import { colorRarityBar } from '@/constants/Colors';
 import { InventorySkin } from '@/constants/skin';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
 import { Image } from 'react-native';
 import { Text, XStack, YStack } from 'tamagui';
-import SheetInventory from './SheetInventory';
 
 interface ItemInventoryProps {
     item: InventorySkin;
-    toggleSelection: (id: number) => void;
-    idsDelete: number[];
+    toggleSelection: (id: string, price: number) => void;
+    idsDelete: string[];
+    onOpenSheet: () => void;
 }
 
-export default function ItemInventory({ item, toggleSelection, idsDelete }: ItemInventoryProps) {
+export default function ItemInventory({ item, toggleSelection, idsDelete, onOpenSheet }: ItemInventoryProps) {
     const colors = useAppTheme();
     const skin = item.skins;
-    const [open, setOpen] = useState(false);
     const itemActive = idsDelete.includes(item.id);
 
     const handlePress = () => {
         if (idsDelete.length > 0) {
-            toggleSelection(item.id);
+            toggleSelection(item.id, item.price);
         } else {
             console.log("Clic normal sur", skinPattern);
         }
@@ -55,7 +53,7 @@ export default function ItemInventory({ item, toggleSelection, idsDelete }: Item
                 backgroundColor={colors.background_elevated}
                 borderRadius={12}
                 borderWidth={1}
-                onLongPress={() => setOpen(true)}
+                onLongPress={() => onOpenSheet()}
                 onPress={() => handlePress()}
                 pressStyle={{ scale: 0.98 }}
                 borderColor={itemActive ? '#ffffffff' : colors.border}
@@ -116,7 +114,6 @@ export default function ItemInventory({ item, toggleSelection, idsDelete }: Item
                     </XStack>
                 </YStack>
             </YStack>
-            <SheetInventory open={open} setOpen={setOpen} toggleSelection={toggleSelection} id={item.id} />
         </>
     );
 }

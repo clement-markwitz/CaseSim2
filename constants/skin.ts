@@ -16,7 +16,7 @@ export interface Skin {
 }
 
 export interface InventorySkin {
-  id: number;
+  id: string;
   owner_id: string;
   skins: Skin;
   wear: Wear;

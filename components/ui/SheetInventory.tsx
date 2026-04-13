@@ -4,8 +4,8 @@ import { Button, Sheet, Text, XStack, YStack } from 'tamagui';
 interface SheetInventoryProps {
     open: boolean;
     setOpen: (open: boolean) => void;
-    id: number;
-    toggleSelection: (id: number) => void;
+    id: string;
+    toggleSelection: (id: string) => void;
 }
 export default function SheetInventory({ open, setOpen, id, toggleSelection }: SheetInventoryProps) {
 
