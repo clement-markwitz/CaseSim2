@@ -16,15 +16,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { useOpenCase } from '@/hooks/useOpenCase';
 import { useProfileMe } from '@/hooks/useProfileMe';
+import { useSellSkins } from '@/hooks/useSellSkins';
 import { skinDrop } from '@/utils/gameLogic';
-import { Wallet } from 'lucide-react-native';
-import { ScrollView, Text, XStack, YStack } from 'tamagui';
+import { Backpack, Banknote, Wallet } from 'lucide-react-native';
+import { Button, ScrollView, Spinner, Text, XStack, YStack } from 'tamagui';
 
 const { width } = Dimensions.get('window');
 
 export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   const [rouletteSkins, setRouletteSkins] = useState<WonItem[] | null>(null);
-
+  const { mutate: sellSkins, isPending: isSelling } = useSellSkins();
   const [isActive, setIsActive] = useState(false);
   const [isRolling, setIsRolling] = useState(false);
   const [finalResult, setFinalResult] = useState<WonItem | null>(null);
@@ -71,7 +72,15 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
     }
   };
 
-
+  const handleSell = () => {
+    if (isSelling) return;
+    if (!finalResult) return;
+    sellSkins({ ids: [finalResult.uid], price: finalResult.price }, {
+      onSuccess: () => {
+        setFinalResult(null);
+      }
+    });
+  };
   const handleOpenCaseDemo = async () => {
     if (isRolling) return;
     const winner = skinDrop(skins)
@@ -246,6 +255,34 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
                   <Text fontSize={24} fontWeight="800" color={colors.tint} marginTop={6}>
                     ${finalResult.price.toFixed(2)}
                   </Text>
+                  {mode === 'real' && (
+                    <XStack marginTop={20} gap={10}>
+                      <Button
+                        size="$3"
+                        width="35%"
+                        backgroundColor={colors.background_elevated}
+                        icon={<Backpack size={17} color={colors.text} />}
+                        borderRadius={12}
+                        borderWidth={1}
+                        borderColor={colors.border}
+                        pressStyle={{ scale: 1.05, backgroundColor: colors.tint }}
+                        onPress={() => { router.push('/(auth)/profileMe') }}
+                      >
+                        <Text color={colors.text} fontWeight="600" fontSize={12}>Inventaire</Text>
+                      </Button>
+                      <Button
+                        size="$3"
+                        width="35%"
+                        backgroundColor="$red8" // Rouge standard de Tamagui
+                        icon={isSelling ? <Spinner color="white" /> : <Banknote size={17} color="white" />}
+                        borderRadius={12}
+                        onPress={() => { handleSell() }}
+                        pressStyle={{ opacity: 0.8, scale: 0.95 }}
+                      >
+                        <Text color="white" fontWeight="600" fontSize={12}>Vendre</Text>
+                      </Button>
+                    </XStack>
+                  )}
                 </LinearGradient>
               </YStack>
             )}

@@ -1,9 +1,9 @@
 // components/ui/AccordionFilter.tsx
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { ArrowDownAZ, ArrowUpAZ, ListFilter } from 'lucide-react-native';
-import { useState } from 'react';
+import { ArrowDownAZ, ArrowUpAZ, Check, ListFilter, RotateCcw } from 'lucide-react-native';
+import { useEffect, useState } from 'react';
 import { Accordion, Button, Input, Label, ScrollView, Square, Text, XStack, YStack } from 'tamagui';
-// Définition de notre état de filtre global
+
 export interface InventoryFilters {
     search: string;
     minPrice: string;
@@ -19,7 +19,6 @@ interface AccordionFilterProps {
 
 const FilterChip = ({ label, active, onPress, icon }: { label: string, active: boolean, onPress: () => void, icon?: any }) => {
     const colors = useAppTheme();
-
     return (
         <Button
             size="$3"
@@ -30,10 +29,7 @@ const FilterChip = ({ label, active, onPress, icon }: { label: string, active: b
             icon={icon}
             borderRadius={8}
         >
-            <Text
-                color={active ? 'black' : colors.text}
-                fontWeight={active ? "bold" : "normal"} // Petit bonus UI : on le met en gras quand c'est actif !
-            >
+            <Text color={active ? 'black' : colors.text} fontWeight={active ? "bold" : "normal"}>
                 {label}
             </Text>
         </Button>
@@ -42,30 +38,46 @@ const FilterChip = ({ label, active, onPress, icon }: { label: string, active: b
 
 export default function AccordionFilter({ filters, setFilters }: AccordionFilterProps) {
     const colors = useAppTheme();
-
-    // Petite fonction utilitaire pour modifier un seul filtre à la fois
-    const updateFilter = <K extends keyof InventoryFilters>(key: K, value: InventoryFilters[K]) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
-    };
-
-    // Composant stylé pour les boutons de sélection (Chips)
-
     const [activeValues, setActiveValues] = useState<string[]>([]);
-
-    // On sait que c'est ouvert si notre tableau contient 'filters'
     const isOpen = activeValues.includes('filters');
 
+    // 🚀 1. L'ÉTAT TEMPORAIRE (Le "brouillon" des filtres)
+    const [tempFilters, setTempFilters] = useState<InventoryFilters>(filters);
+
+    // Si on ouvre le menu, on s'assure que le brouillon correspond aux filtres actuellement appliqués
+    useEffect(() => {
+        if (isOpen) {
+            setTempFilters(filters);
+        }
+    }, [isOpen, filters]);
+
+    // Cette fonction modifie uniquement le brouillon, PAS la base de données
+    const updateTempFilter = <K extends keyof InventoryFilters>(key: K, value: InventoryFilters[K]) => {
+        setTempFilters(prev => ({ ...prev, [key]: value }));
+    };
+
+    // 🚀 2. LA FONCTION POUR APPLIQUER
+    const applyFilters = () => {
+        setFilters(tempFilters); // On envoie le brouillon au parent (ce qui déclenche Supabase)
+        setActiveValues([]); // On ferme l'Accordion
+    };
+
+    // 🚀 3. LA FONCTION POUR RÉINITIALISER
+    const resetFilters = () => {
+        const defaultFilters: InventoryFilters = {
+            search: '', minPrice: '', maxPrice: '', category: 'all', sortBy: 'price_desc'
+        };
+        setTempFilters(defaultFilters);
+        setFilters(defaultFilters);
+        setActiveValues([]);
+    };
 
     return (
         <YStack overflow="hidden" width="100%" marginBottom={15}>
-            <Accordion
-                type="multiple"
-                value={activeValues}
-                onValueChange={setActiveValues} // Tamagui gère l'ouverture tout seul !
-            >
+            <Accordion type="multiple" value={activeValues} onValueChange={setActiveValues}>
                 <Accordion.Item value="filters">
 
-                    {/* --- HEADER DE L'ACCORDION --- */}
+                    {/* --- HEADER --- */}
                     <Accordion.Trigger
                         backgroundColor={colors.background_card}
                         flexDirection="row"
@@ -73,7 +85,7 @@ export default function AccordionFilter({ filters, setFilters }: AccordionFilter
                         padding={15}
                         borderTopLeftRadius={12}
                         borderTopRightRadius={12}
-                        borderBottomLeftRadius={isOpen ? 0 : 12} // On utilise notre variable propre
+                        borderBottomLeftRadius={isOpen ? 0 : 12}
                         borderBottomRightRadius={isOpen ? 0 : 12}
                         borderWidth={1}
                         borderBottomWidth={isOpen ? 0 : 1}
@@ -94,13 +106,13 @@ export default function AccordionFilter({ filters, setFilters }: AccordionFilter
                         )}
                     </Accordion.Trigger>
 
-                    {/* --- CONTENU DE L'ACCORDION --- */}
+                    {/* --- CONTENU --- */}
                     <Accordion.HeightAnimator transition={{ duration: 200 }}>
                         <Accordion.Content
                             transition={{ duration: 200 }}
                             exitStyle={{ opacity: 0 }}
                             borderWidth={1}
-                            borderTopWidth={0} // Évite la double bordure
+                            borderTopWidth={0}
                             borderColor={colors.border}
                             borderBottomLeftRadius={12}
                             borderBottomRightRadius={12}
@@ -109,86 +121,89 @@ export default function AccordionFilter({ filters, setFilters }: AccordionFilter
                         >
                             <YStack gap={20}>
 
-                                {/* 1. Recherche par nom */}
+                                {/* 1. Recherche par nom (Utilise tempFilters) */}
                                 <YStack gap={5}>
                                     <Label color={colors.text_muted} fontSize={12}>Recherche de skin</Label>
                                     <Input
-                                        placeholder="Nom de l'arme (ex: Asiimov, Redline...)"
+                                        placeholder="Nom de l'arme (ex: Asiimov...)"
                                         placeholderTextColor={colors.text_muted as any}
-                                        value={filters.search}
-                                        onChangeText={(t) => updateFilter('search', t)}
+                                        value={tempFilters.search}
+                                        onChangeText={(t) => updateTempFilter('search', t)}
                                         backgroundColor={colors.background_elevated}
                                         borderColor={colors.border}
                                         color={colors.text}
                                     />
                                 </YStack>
 
-                                {/* 2. Prix Min & Max */}
+                                {/* 2. Prix Min & Max (Utilise tempFilters) */}
                                 <XStack gap={10}>
                                     <YStack flex={1} gap={5}>
                                         <Label color={colors.text_muted} fontSize={12}>Prix Min ($)</Label>
                                         <Input
-                                            keyboardType="numeric"
-                                            placeholder="0"
-                                            value={filters.minPrice}
-                                            onChangeText={(t) => updateFilter('minPrice', t)}
+                                            keyboardType="numeric" placeholder="0"
+                                            value={tempFilters.minPrice}
+                                            onChangeText={(t) => updateTempFilter('minPrice', t)}
                                             backgroundColor={colors.background_elevated}
-                                            placeholderTextColor={colors.text_muted as any}
-                                            borderColor={colors.border}
-                                            color={colors.text}
+                                            borderColor={colors.border} color={colors.text}
                                         />
                                     </YStack>
                                     <YStack flex={1} gap={5}>
                                         <Label color={colors.text_muted} fontSize={12}>Prix Max ($)</Label>
                                         <Input
-                                            keyboardType="numeric"
-                                            placeholder="1000"
-                                            value={filters.maxPrice}
-                                            onChangeText={(t) => updateFilter('maxPrice', t)}
+                                            keyboardType="numeric" placeholder="1000"
+                                            value={tempFilters.maxPrice}
+                                            onChangeText={(t) => updateTempFilter('maxPrice', t)}
                                             backgroundColor={colors.background_elevated}
-                                            placeholderTextColor={colors.text_muted as any}
-                                            borderColor={colors.border}
-                                            color={colors.text}
+                                            borderColor={colors.border} color={colors.text}
                                         />
                                     </YStack>
                                 </XStack>
 
-                                {/* 3. Catégorie (StatTrak / Souvenir / Normal) */}
+                                {/* 3. Catégorie */}
                                 <YStack gap={5}>
                                     <Label color={colors.text_muted} fontSize={12}>Catégorie</Label>
                                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                                         <XStack gap={10}>
-                                            <FilterChip label="Tout" active={filters.category === 'all'} onPress={() => updateFilter('category', 'all')} />
-                                            <FilterChip label="Normal" active={filters.category === 'normal'} onPress={() => updateFilter('category', 'normal')} />
-                                            <FilterChip label="StatTrak™" active={filters.category === 'stattrak'} onPress={() => updateFilter('category', 'stattrak')} />
-                                            <FilterChip label="Souvenir" active={filters.category === 'souvenir'} onPress={() => updateFilter('category', 'souvenir')} />
+                                            <FilterChip label="Tout" active={tempFilters.category === 'all'} onPress={() => updateTempFilter('category', 'all')} />
+                                            <FilterChip label="Normal" active={tempFilters.category === 'normal'} onPress={() => updateTempFilter('category', 'normal')} />
+                                            <FilterChip label="StatTrak™" active={tempFilters.category === 'stattrak'} onPress={() => updateTempFilter('category', 'stattrak')} />
+                                            <FilterChip label="Souvenir" active={tempFilters.category === 'souvenir'} onPress={() => updateTempFilter('category', 'souvenir')} />
                                         </XStack>
                                     </ScrollView>
                                 </YStack>
 
-                                {/* 4. Tri (Sort By) */}
+                                {/* 4. Tri */}
                                 <YStack gap={5}>
                                     <Label color={colors.text_muted} fontSize={12}>Trier par</Label>
                                     <XStack gap={10} flexWrap="wrap">
-                                        <FilterChip
-                                            label="Plus chers"
-                                            icon={<ArrowDownAZ size={14} color={filters.sortBy === 'price_desc' ? 'black' : colors.text} />}
-                                            active={filters.sortBy === 'price_desc'}
-                                            onPress={() => updateFilter('sortBy', 'price_desc')}
-                                        />
-                                        <FilterChip
-                                            label="Moins chers"
-                                            icon={<ArrowUpAZ size={14} color={filters.sortBy === 'price_asc' ? 'black' : colors.text} />}
-                                            active={filters.sortBy === 'price_asc'}
-                                            onPress={() => updateFilter('sortBy', 'price_asc')}
-                                        />
-                                        <FilterChip
-                                            label="Plus récents"
-                                            active={filters.sortBy === 'newest'}
-                                            onPress={() => updateFilter('sortBy', 'newest')}
-                                        />
+                                        <FilterChip label="Plus chers" icon={<ArrowDownAZ size={14} color={tempFilters.sortBy === 'price_desc' ? 'black' : colors.text} />} active={tempFilters.sortBy === 'price_desc'} onPress={() => updateTempFilter('sortBy', 'price_desc')} />
+                                        <FilterChip label="Moins chers" icon={<ArrowUpAZ size={14} color={tempFilters.sortBy === 'price_asc' ? 'black' : colors.text} />} active={tempFilters.sortBy === 'price_asc'} onPress={() => updateTempFilter('sortBy', 'price_asc')} />
+                                        <FilterChip label="Plus récents" active={tempFilters.sortBy === 'newest'} onPress={() => updateTempFilter('sortBy', 'newest')} />
                                     </XStack>
                                 </YStack>
+
+                                {/* 🚀 5. LES BOUTONS D'ACTION (Nouveau) */}
+                                <XStack gap={10} paddingTop={10} borderTopWidth={1} borderColor={colors.border}>
+                                    <Button
+                                        flex={1}
+                                        backgroundColor={colors.background_elevated}
+                                        borderColor={colors.border}
+                                        borderWidth={1}
+                                        onPress={resetFilters}
+                                        icon={<RotateCcw size={16} color={colors.text} />}
+                                    >
+                                        <Text color={colors.text}>Réinitialiser</Text>
+                                    </Button>
+
+                                    <Button
+                                        flex={2}
+                                        backgroundColor={colors.tint}
+                                        onPress={applyFilters}
+                                        icon={<Check size={18} color="black" />}
+                                    >
+                                        <Text color="black" fontWeight="bold">Appliquer</Text>
+                                    </Button>
+                                </XStack>
 
                             </YStack>
                         </Accordion.Content>
