@@ -14,6 +14,7 @@ export default function SheetInventory({ open, setOpen, id, toggleSelection }: S
         toggleSelection(id);
         setOpen(false);
     }
+
     return (
         <>
 
