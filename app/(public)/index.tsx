@@ -15,6 +15,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { Animated, Image } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 // On importe toute la structure depuis Tamagui
+import RewardList from '@/components/RewardList';
 import { useAppTheme } from '@/hooks/useAppTheme';
 import { Button, ScrollView, Spinner, Text, XStack, YStack } from 'tamagui';
 // Composant pour les statistiques individuelles avec animation
@@ -285,7 +286,16 @@ const Home = () => {
                     <Header />
                 </Suspense>
             </ErrorBoundary>
+
             <ScrollView flex={1} backgroundColor={colors.background} showsVerticalScrollIndicator={false}>
+                <ErrorBoundary
+                    onReset={reset}
+                    fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
+                >
+                    <Suspense fallback={<Spinner />}>
+                        <RewardList />
+                    </Suspense>
+                </ErrorBoundary>
                 <YStack flex={1} backgroundColor={colors.background} alignItems="center" justifyContent="flex-start" paddingBottom={40}>
 
                     <Hero />
