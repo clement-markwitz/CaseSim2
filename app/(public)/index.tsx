@@ -354,9 +354,7 @@ const MainContent = () => {
     );
 };
 
-// ------------------------------------------------------------------
-// 2. LE COMPOSANT PRINCIPAL (La Porte Blindée)
-// ------------------------------------------------------------------
+
 const Home = () => {
     return (
         <SafeAreaProvider>
