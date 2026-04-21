@@ -28,6 +28,9 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.legob62.case_simulator"
     },
+    "androidNavigationBar": {
+      "visible": "immersive"
+    },
     "web": {
       "bundler": "metro",
       "output": "static",
