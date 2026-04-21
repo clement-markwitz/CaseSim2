@@ -6,7 +6,8 @@ import { ChevronRight, Sparkles, Trophy } from 'lucide-react-native';
 import { Dimensions } from 'react-native';
 // On importe tout depuis Tamagui
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Text, XStack, YStack } from 'tamagui';
+import { useDemoStore } from '@/stores/demoStore';
+import { AnimatePresence, Text, XStack, YStack } from 'tamagui';
 
 const { width } = Dimensions.get('window');
 
@@ -14,6 +15,7 @@ const Hero = () => {
     const { isAuthenticated, isLoading } = useAuth();
     const router = useRouter();
     const colors = useAppTheme();
+    const { mode } = useDemoStore();
     return (
         <YStack width={width - 32} marginTop={20} gap="$4">
 
@@ -75,16 +77,32 @@ const Hero = () => {
                     </XStack>
 
                     {/* Main Title */}
-                    <Text fontSize={28} fontWeight="800" color={colors.text} lineHeight={36}>
-                        Ouvrez des caisses{'\n'}
-                        <Text color={colors.tint}>sans limites</Text>
-                    </Text>
+                    <YStack minHeight={100} justifyContent="center">
+                        <AnimatePresence mode="wait">
+                            <YStack
+                                key={mode} // 🌟 LA MAGIE EST ICI : À chaque changement de mode, Tamagui anime
+                                transition={{ type: "spring" }}
+                                enterStyle={{ opacity: 0, }} // Le nouveau texte arrive de la gauche
+                                exitStyle={{ opacity: 0, }}   // L'ancien texte part vers la droite
+                                gap="$4"
+                            >
+                                {/* Main Title */}
+                                <Text fontSize={28} fontWeight="800" color={colors.text} lineHeight={36}>
+                                    Ouvrez des caisses{'\n'}
+                                    <Text color={colors.tint}>
+                                        {mode === "demo" ? "sans limites" : "et gagnez des skins"}
+                                    </Text>
+                                </Text>
 
-                    {/* Description */}
-                    <Text fontSize={15} color={colors.text_secondary} lineHeight={22}>
-                        Testez votre chance et découvrez les skins les plus rares du jeu.
-                        Aucun risque, que du fun !
-                    </Text>
+                                {/* Description */}
+                                <Text fontSize={15} color={colors.text_secondary} lineHeight={22}>
+                                    {mode === "demo"
+                                        ? "Testez votre chance et découvrez les skins les plus rares du jeu. Aucun risque, que du fun !"
+                                        : "Ouvrez des caisses avec votre argent, gagnez des skins, soyez le meilleur du classement et gagnez des récompenses."}
+                                </Text>
+                            </YStack>
+                        </AnimatePresence>
+                    </YStack>
 
                     {/* Stats row */}
                     <XStack

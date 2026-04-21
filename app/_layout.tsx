@@ -5,13 +5,14 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { createAnimations } from '@tamagui/animations-react-native';
 import { defaultConfig } from '@tamagui/config/v5';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
+import * as NavigationBar from 'expo-navigation-bar';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
-import { View } from 'react-native';
+import { AppState, AppStateStatus, Platform, View } from 'react-native';
 import 'react-native-reanimated';
 import { createTamagui, TamaguiProvider } from 'tamagui';
 
@@ -58,16 +59,20 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+    const subscription = AppState.addEventListener('change', (status: AppStateStatus) => {
+      if (Platform.OS !== 'web') {
+        // On connecte le statut de l'application mobile au focusManager de React Query
+        focusManager.setFocused(status === 'active');
+      }
+    });
 
+    return () => subscription.remove();
+  }, []);
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (Platform.OS === 'android') {
+      NavigationBar.setVisibilityAsync('hidden');
     }
-  }, [loaded]);
-
-  // 🚀 C'est ICI qu'on met à jour le SystemUI dynamiquement !
+  }, []);
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background);
   }, [colors.background]);

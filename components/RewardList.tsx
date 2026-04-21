@@ -44,6 +44,13 @@ export default function RewardList() {
             padding={16}
             borderWidth={1}
             borderColor={colors.border}
+            transition={{ type: "spring", damping: 20, stiffness: 100 }}
+
+            // 2. 🌟 LA MAGIE EST ICI : l'état de départ avant l'apparition
+            enterStyle={{
+                opacity: 0,        // Commence totalement transparent        // Commence 20 pixels plus bas
+                scale: 0.95,       // Commence légèrement plus petit (95% de sa taille)
+            }}
             gap={15}
         >
             <XStack alignItems="center" gap={10} paddingBottom={5} borderBottomWidth={1} borderBottomColor={colors.border}>

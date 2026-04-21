@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { RefreshCcw } from '@tamagui/lucide-icons-2';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as SplashScreen from 'expo-splash-screen';
 import React, { Suspense, useEffect, useRef } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 // On importe Image et Animated depuis React Native
@@ -17,7 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 // On importe toute la structure depuis Tamagui
 import RewardList from '@/components/RewardList';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Button, ScrollView, Spinner, Text, XStack, YStack } from 'tamagui';
+import { Button, ScrollView, Text, XStack, YStack } from 'tamagui';
 // Composant pour les statistiques individuelles avec animation
 const StatCard = ({
     icon,
@@ -257,13 +258,13 @@ const BestDropCard = ({ drop }: { drop: any }) => {
     );
 };
 
-const Home = () => {
+const MainContent = () => {
     const { totalOpened, totalValue, bestDrop, getProfit } = useDemoStore();
     const { reset } = useQueryErrorResetBoundary();
     const displayColor = getProfit() >= 0 ? '#00B894' : '#E74C3C';
     const profitIcon = getProfit() >= 0 ? 'trending-up' : 'trending-down';
     const colors = useAppTheme();
-    // Animation pour le container de stats
+
     const containerAnim = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
@@ -276,28 +277,23 @@ const Home = () => {
         }
     }, [totalOpened, containerAnim]);
 
+    useEffect(() => {
+        SplashScreen.hideAsync();
+    }, []);
+
     return (
-        <SafeAreaProvider>
-            <ErrorBoundary
-                onReset={reset}
-                fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
-            >
-                <Suspense fallback={<Spinner />}>
-                    <Header />
-                </Suspense>
+        <>
+            {/* J'ai gardé les ErrorBoundary, c'est une excellente pratique ! */}
+            <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}>
+                <Header />
             </ErrorBoundary>
 
             <ScrollView flex={1} backgroundColor={colors.background} showsVerticalScrollIndicator={false}>
-                <ErrorBoundary
-                    onReset={reset}
-                    fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
-                >
-                    <Suspense fallback={<Spinner />}>
-                        <RewardList />
-                    </Suspense>
+                <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}>
+                    <RewardList />
                 </ErrorBoundary>
-                <YStack flex={1} backgroundColor={colors.background} alignItems="center" justifyContent="flex-start" paddingBottom={40}>
 
+                <YStack flex={1} backgroundColor={colors.background} alignItems="center" justifyContent="flex-start" paddingBottom={40}>
                     <Hero />
 
                     {/* Section Statistiques */}
@@ -309,14 +305,12 @@ const Home = () => {
                                 marginTop: 24,
                                 marginBottom: 8,
                                 opacity: containerAnim,
-                                transform: [
-                                    {
-                                        translateY: containerAnim.interpolate({
-                                            inputRange: [0, 1],
-                                            outputRange: [20, 0],
-                                        }),
-                                    },
-                                ],
+                                transform: [{
+                                    translateY: containerAnim.interpolate({
+                                        inputRange: [0, 1],
+                                        outputRange: [20, 0],
+                                    }),
+                                }],
                             }}
                         >
                             {/* Header de section */}
@@ -327,7 +321,6 @@ const Home = () => {
                                         Tes Statistiques
                                     </Text>
 
-                                    {/* Bouton Reset poussé à droite grâce à marginLeft="auto" */}
                                     <Text
                                         fontSize={12} fontWeight="500" color={colors.text_muted} letterSpacing={0.5} marginLeft="auto"
                                         onPress={() => useDemoStore.getState().resetStats()}
@@ -341,27 +334,9 @@ const Home = () => {
 
                             {/* Grille de stats */}
                             <XStack gap={12} marginBottom={20}>
-                                <StatCard
-                                    icon="cube-outline"
-                                    value={totalOpened.toString()}
-                                    label="Cases"
-                                    color="#6C5CE7"
-                                    delay={100}
-                                />
-                                <StatCard
-                                    icon="wallet-outline"
-                                    value={`${totalValue.toFixed(2)}€`}
-                                    label="Valeur"
-                                    color="#a89805ff"
-                                    delay={200}
-                                />
-                                <StatCard
-                                    icon={profitIcon}
-                                    value={`${getProfit().toFixed(2)}€`}
-                                    label="Profit"
-                                    color={displayColor}
-                                    delay={300}
-                                />
+                                <StatCard icon="cube-outline" value={totalOpened.toString()} label="Cases" color="#6C5CE7" delay={100} />
+                                <StatCard icon="wallet-outline" value={`${totalValue.toFixed(2)}€`} label="Valeur" color="#a89805ff" delay={200} />
+                                <StatCard icon={profitIcon} value={`${getProfit().toFixed(2)}€`} label="Profit" color={displayColor} delay={300} />
                             </XStack>
 
                             {/* Meilleur drop */}
@@ -369,17 +344,23 @@ const Home = () => {
                         </Animated.View>
                     )}
 
-                    <ErrorBoundary
-                        onReset={reset}
-                        fallbackRender={({ error, resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}
-                    >
-                        <Suspense fallback={<Spinner size="large" color="$yellow" marginTop={20} />}>
-                            <SearchBar />
-                            <CaseList />
-                        </Suspense>
+                    <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}>
+                        <SearchBar />
+                        <CaseList />
                     </ErrorBoundary>
                 </YStack>
             </ScrollView>
+        </>
+    );
+};
+
+
+const Home = () => {
+    return (
+        <SafeAreaProvider>
+            <Suspense fallback={null}>
+                <MainContent />
+            </Suspense>
         </SafeAreaProvider>
     );
 };
