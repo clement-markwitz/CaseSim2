@@ -2,13 +2,15 @@ import AccordionFilter, { InventoryFilters } from '@/components/ui/AccordionFilt
 import ItemInventory from '@/components/ui/ItemInventory';
 import SheetInventory from "@/components/ui/SheetInventory";
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useAuth } from "@/hooks/useAuth";
 import { useInventory } from "@/hooks/useInventory";
 import { useProfileMe } from "@/hooks/useProfileMe";
 import { useSellSkins } from "@/hooks/useSellSkins";
+import { useUiStore } from "@/stores/uiStore";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowLeft, Edit3, PackageOpen, Settings, Trash2, X } from "lucide-react-native";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar, Button, Spinner, Text, XStack, YStack } from "tamagui";
@@ -18,6 +20,8 @@ export default function ProfileScreen() {
     const colors = useAppTheme();
     const router = useRouter();
     const insets = useSafeAreaInsets();
+    const { signOut } = useAuth();
+    const { setTabVisible } = useUiStore();
 
     // 🚀 INJECTION DU HOOK DE VENTE
     const { mutate: sellSkins, isPending: isSelling } = useSellSkins();
@@ -32,6 +36,7 @@ export default function ProfileScreen() {
     });
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInventory(filters);
+
 
     // 🐛 CORRECTION DU BUG DE PRIX : On ajoute ou on soustrait intelligemment
     const toggleSelection = (id: string, price: number) => {
@@ -48,10 +53,18 @@ export default function ProfileScreen() {
 
     // 🧹 Fonction pour annuler la sélection proprement
     const cancelSelection = () => {
+        setTabVisible(true);
         setIdsDelete([]);
         setTotalPrice(0);
     };
-
+    useFocusEffect(
+        useCallback(() => {
+            setTabVisible(true);
+            return () => {
+                cancelSelection();
+            };
+        }, [])
+    );
     // 💰 Fonction pour déclencher la vente
     const handleSell = () => {
         if (idsDelete.length === 0) return;
@@ -128,7 +141,7 @@ export default function ProfileScreen() {
             <XStack alignItems="center" justifyContent="space-between" paddingHorizontal={20} paddingBottom={20}>
                 <Button icon={<ArrowLeft size={20} color={colors.text} />} onPress={() => router.back()} circular backgroundColor={colors.background_elevated} />
                 <Text fontSize={20} fontWeight="bold" color={colors.text} letterSpacing={1}>PROFIL</Text>
-                <Button icon={<Settings size={20} color={colors.text} />} circular backgroundColor={colors.background_elevated} />
+                <Button icon={<Settings size={20} color={colors.text} />} onPress={() => signOut()} circular backgroundColor={colors.background_elevated} />
             </XStack>
 
             <LinearGradient colors={['transparent', colors.tint, 'transparent']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={{ height: 1, opacity: 0.3, marginBottom: 20 }} />

@@ -12,7 +12,7 @@ import { Avatar, Switch, Text, XStack, YStack } from 'tamagui';
 
 const Header = () => {
     const insets = useSafeAreaInsets();
-    const { signOut, isAuthenticated } = useAuth();
+    const { isAuthenticated } = useAuth();
     const { data: profile } = useProfileMe();
     const colors = useAppTheme();
     const { setMode, mode } = useDemoStore();
@@ -72,7 +72,7 @@ const Header = () => {
                         {/* Gestion de l'avatar : s'il y a une URL, on l'affiche, sinon on met un carré de remplacement */}
 
                         <Avatar
-                            onPress={() => router.push('/(auth)/profileMe')}
+                            onPress={() => router.push('/(tabs)/profileMe')}
                             size={36}
                             borderRadius={10}
                             backgroundColor={colors.background_elevated}
@@ -91,12 +91,6 @@ const Header = () => {
                                 </Text>
                             </Avatar.Fallback>
                         </Avatar>
-
-
-                        {/* Pseudo */}
-                        <Text fontSize={18} fontWeight="800" color={colors.text} letterSpacing={2}>
-                            {profile.username}
-                        </Text>
 
                         {/* Balance */}
                         <Text fontSize={18} fontWeight="800" color={colors.tint} letterSpacing={2}>
