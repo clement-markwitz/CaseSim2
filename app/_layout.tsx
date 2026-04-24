@@ -51,7 +51,7 @@ const tamaguiConfig = createTamagui({
   })
 });
 export default function RootLayout() {
-  const colors = useAppTheme(); // 👈 Le hook est bien DANS le composant
+  const colors = useAppTheme();
 
   const [loaded, error] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -85,6 +85,7 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+
   const colors = useAppTheme();
   const colorScheme = useColorScheme();
 
@@ -119,10 +120,9 @@ function RootLayoutNav() {
                 },
               }}
             >
-              <Stack.Screen name="(public)/index" />
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
               <Stack.Screen name="(public)/case/[id]" />
               <Stack.Screen name="(auth)/InformationAccount" />
-              <Stack.Screen name="(auth)/profileMe" />
             </Stack>
           </View>
         </ThemeProvider>
