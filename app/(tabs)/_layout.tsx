@@ -1,18 +1,22 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
+import { useUiStore } from "@/stores/uiStore";
 import { Tabs } from "expo-router";
 import { Home, User } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
 
+
 export default function TabLayout() {
     const colors = useAppTheme();
     const insets = useSafeAreaInsets();
+    const { isTabVisible } = useUiStore();
 
     return (
         <Tabs
             screenOptions={{
                 tabBarStyle: {
+                    display: isTabVisible ? 'flex' : 'none',
                     // 1. Bien "collée" en bas
                     position: 'absolute',
                     height: 60 + insets.bottom, // S'adapte à la zone sûre (iPhone)

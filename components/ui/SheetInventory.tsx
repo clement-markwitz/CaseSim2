@@ -1,6 +1,8 @@
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { useUiStore } from '@/stores/uiStore';
 import { Archive, Banknote, Rocket, X } from 'lucide-react-native';
 import { Button, Sheet, Text, XStack, YStack } from 'tamagui';
+
 interface SheetInventoryProps {
     open: boolean;
     setOpen: (open: boolean) => void;
@@ -8,9 +10,10 @@ interface SheetInventoryProps {
     toggleSelection: (id: string) => void;
 }
 export default function SheetInventory({ open, setOpen, id, toggleSelection }: SheetInventoryProps) {
-
+    const { setTabVisible } = useUiStore();
     const colors = useAppTheme();
     const sellItem = () => {
+        setTabVisible(false);
         toggleSelection(id);
         setOpen(false);
     }

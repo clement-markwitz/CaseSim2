@@ -1,3 +1,5 @@
+import AuthRedirectComponent from "@/components/AuthRedirectComponent";
+import { useAuth } from "@/hooks/useAuth";
 import ProfileScreen from "@/screens/ProfileScreen";
 import { useQueryErrorResetBoundary } from "@tanstack/react-query";
 import { RefreshCcw } from "lucide-react-native";
@@ -7,6 +9,11 @@ import { Button, Spinner } from "tamagui";
 
 export const ProfileMe = () => {
     const { reset } = useQueryErrorResetBoundary();
+    const { isAuthenticated } = useAuth();
+
+    if (!isAuthenticated) {
+        return <AuthRedirectComponent page="Profil" />;
+    }
 
     return (
         <ErrorBoundary
