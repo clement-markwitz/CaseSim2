@@ -65,6 +65,10 @@ export const skinDrop = (skins: Skin[]): WonItem => {
         possibleSkins = skins.filter((s) => s.rarity === 'Mil-Spec Grade');
     }
 
+    if (possibleSkins.length === 0) {
+        possibleSkins = skins;
+    }
+
     // 4. On tire un skin au hasard parmi les possibles
     const skin = possibleSkins[Math.floor(getSecureRandom() * possibleSkins.length)];
     // 5. Génération du float et du wear
