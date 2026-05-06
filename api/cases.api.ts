@@ -15,7 +15,7 @@ export const fetchCasesWithSkinsId = async (): Promise<Case[]> => {
         id: caisse.id,
         name: caisse.name,
         image: caisse.image,
-        price: caisse.price || 2.35,
+        price: caisse.price,
         type: caisse.type,
         skinIds: caisse.skins.map((skin: any) => skin.id)
     }));
