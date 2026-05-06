@@ -56,7 +56,7 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
     setIsRolling(true);
 
     try {
-      const winner = await openCase({ caseId: caseItem?.id, casePrice: caseItem?.price || 0 });
+      const winner = await openCase({ caseId: caseItem?.id, casePrice: caseItem?.price || 0, leaderboardId: profile?.active_weekly_leaderboard_id ?? null });
 
       useDemoStore.getState().addDrop(winner, caseItem?.price || 0);
       setFinalResult(winner);
@@ -75,7 +75,7 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   const handleSell = () => {
     if (isSelling) return;
     if (!finalResult) return;
-    sellSkins({ ids: [finalResult.uid], price: finalResult.price }, {
+    sellSkins({ ids: [finalResult.uid], price: finalResult.price, leaderboardId: profile?.active_weekly_leaderboard_id ?? null }, {
       onSuccess: () => {
         setFinalResult(null);
       }
@@ -266,7 +266,7 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
                         borderWidth={1}
                         borderColor={colors.border}
                         pressStyle={{ scale: 1.05, backgroundColor: colors.tint }}
-                        onPress={() => { router.push('/(auth)/profileMe') }}
+                        onPress={() => { router.push('/(tabs)/profileMe') }}
                       >
                         <Text color={colors.text} fontWeight="600" fontSize={12}>Inventaire</Text>
                       </Button>

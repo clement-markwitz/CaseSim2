@@ -20,8 +20,6 @@ export default function ItemInventory({ item, toggleSelection, idsDelete, onOpen
     const handlePress = () => {
         if (idsDelete.length > 0) {
             toggleSelection(item.id, item.price);
-        } else {
-            console.log("Clic normal sur", skinPattern);
         }
     };
     // Protection anti-crash si le skin est introuvable en base de données

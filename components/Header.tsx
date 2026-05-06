@@ -94,7 +94,7 @@ const Header = () => {
 
                         {/* Balance */}
                         <Text fontSize={18} fontWeight="800" color={colors.tint} letterSpacing={2}>
-                            {profile.balance} $
+                            {profile.balance ? profile.balance + ' $' : "Ouvrez une caisse"}
                         </Text>
 
                     </XStack>
