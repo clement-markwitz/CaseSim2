@@ -3,15 +3,15 @@ export interface Case {
     name: string; // Ex: "Revolution Case"
     image: string;
     price: number; // Prix de la clé (ex: 2.35)
+    type: 'normal' | 'souvenir' | 'sticker' | 'basique';
     skinIds: string[]; // C'est ici qu'on fait la liaison !
-    type: 'basique' | 'souvenir' | 'sticker';
 }
 
 export const CASES: Case[] = [
     {
         id: 'kilowatt_case',
         name: 'Kilowatt Case',
-        type: 'basique',
+        type: 'normal',
         image: 'https://cdn.tradeit.gg/csgo%2FKilowatt%20Case_134x95.webp',
         price: 2.35,
         skinIds: [
