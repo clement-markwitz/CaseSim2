@@ -82,21 +82,21 @@ const CaseList = () => {
 
     const basiqueCases = filteredCases.filter((c) => {
         if (profile?.balance != null || mode === 'demo') {
-            return c.type === 'basique';
+            return c.type === 'basique' && c.price > 0;
         } else {
             return c.type === 'basique' && c.price == 0;
         }
     });
     const souvenirCases = filteredCases.filter((c) => {
         if (profile?.balance != null || mode === 'demo') {
-            return c.type === 'souvenir';
+            return c.type === 'souvenir' && c.price > 0;
         } else {
             return c.type === 'souvenir' && c.price == 0;
         }
     });
     const stickerCases = filteredCases.filter((c) => {
         if (profile?.balance != null || mode === 'demo') {
-            return c.type === 'sticker';
+            return c.type === 'sticker' && c.price > 0;
         } else {
             return c.type === 'sticker' && c.price == 0;
         }
