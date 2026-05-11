@@ -34,7 +34,64 @@ const getIsStatTrak = (skin: Skin): boolean => {
     const statTrakPourcentage: number = getSecureRandom() * 100;
     return statTrakPourcentage <= 10;
 };
+export const souvenirDrop = (skins: Skin[]): WonItem => {
+    // 🛡️ Sécurité
+    if (!skins || skins.length === 0) {
+        throw new Error("Aucun skin n'a été fourni pour le drop souvenir");
+    }
 
+    // 1. Tirage du pourcentage de rareté (basé sur les probas officielles)
+    const rarityPourcentage: number = getSecureRandom() * 100;
+    let rarity: string;
+
+    if (rarityPourcentage <= 0.0256) {
+        rarity = 'Covert';
+    } else if (rarityPourcentage <= 0.1536) { // 0.0256 + 0.128
+        rarity = 'Classified';
+    } else if (rarityPourcentage <= 0.7936) { // + 0.64
+        rarity = 'Restricted';
+    } else if (rarityPourcentage <= 3.9936) { // + 3.2
+        rarity = 'Mil-Spec Grade';
+    } else if (rarityPourcentage <= 19.9936) { // + 16
+        rarity = 'Industrial Grade';
+    } else {
+        rarity = 'Consumer Grade';
+    }
+
+    // 2. Filtrage
+    let possibleSkins: Skin[] = skins.filter((skin) => skin.rarity === rarity);
+
+    // 3. Fallback (si la rareté n'existe pas dans cette collection spécifique)
+    if (possibleSkins.length === 0) {
+        // On cherche la rareté la plus basse disponible si le tirage échoue
+        possibleSkins = skins.filter((s) => s.rarity === 'Consumer Grade');
+        if (possibleSkins.length === 0) possibleSkins = [skins[0]];
+    }
+
+    // 4. Sélection du skin
+    const skin = possibleSkins[Math.floor(getSecureRandom() * possibleSkins.length)];
+
+    // 5. Génération du float
+    const float = getSecureRandom() * (skin.maxFloat - skin.minFloat) + skin.minFloat;
+    const wear = generateFloat(float);
+
+    // 6. Calcul du prix 
+    const price = skin.prices.souvenir?.[wear];
+
+    // 7. Retour de l'objet
+    return {
+        uid: Math.random().toString(36).substring(2, 9),
+        skinId: skin.id,
+        name: `Souvenir ${skin.name}`,
+        image: skin.image,
+        rarity: skin.rarity,
+        wear,
+        float,
+        isStattrak: false,
+        isSouvenir: true,
+        price: price || 0,
+    };
+};
 export const skinDrop = (skins: Skin[]): WonItem => {
     // 🛡️ Sécurité : on vérifie que le tableau n'est pas vide
     if (!skins || skins.length === 0) {
@@ -97,18 +154,20 @@ export const skinDrop = (skins: Skin[]): WonItem => {
         isSouvenir: false,
         price,
     };
-};
+}
 
-export const generateRouletteTab = (skins: Skin[], winningItem: WonItem): WonItem[] => {
+export const generateRouletteTab = (skins: Skin[], winningItem: WonItem, isSouvenir: boolean): WonItem[] => {
     const tab: WonItem[] = [];
-
-
 
     for (let i = 0; i < TOTAL_ITEMS; i++) {
         if (i === WINNER_INDEX) {
             tab.push(winningItem);
         } else {
-            tab.push(skinDrop(skins));
+            if (isSouvenir) {
+                tab.push(souvenirDrop(skins));
+            } else {
+                tab.push(skinDrop(skins));
+            }
         }
     }
 

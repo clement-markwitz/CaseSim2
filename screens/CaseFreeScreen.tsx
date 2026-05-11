@@ -5,7 +5,7 @@ import { colorRaritySolid } from '@/constants/Colors';
 import { useCase } from '@/hooks/useCase';
 import { useSkins } from '@/hooks/useSkins';
 import { useDemoStore } from '@/stores/demoStore';
-import { generateRouletteTab, WonItem } from '@/utils/gameLogic';
+import { generateRouletteTab, souvenirDrop, WonItem } from '@/utils/gameLogic';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router, useNavigation } from 'expo-router';
 import { ArrowLeft, Box } from 'lucide-react-native';
@@ -60,7 +60,7 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
 
       useDemoStore.getState().addDrop(winner, caseItem?.price || 0);
       setFinalResult(winner);
-      const visualTab = generateRouletteTab(skins, winner);
+      const visualTab = generateRouletteTab(skins, winner, caseItem?.type === 'souvenir');
       setRouletteSkins(visualTab);
 
       setIsActive(true);
@@ -83,17 +83,22 @@ export default function CaseFreeScreen({ caseId }: { caseId: string }) {
   };
   const handleOpenCaseDemo = async () => {
     if (isRolling) return;
-    const winner = skinDrop(skins)
+    let winner: WonItem;
+    if (caseItem?.type === 'souvenir') {
+      winner = souvenirDrop(skins);
+    } else {
+      winner = skinDrop(skins);
+    }
     setIsActive(true);
     setIsRolling(true);
     useDemoStore.getState().addDrop(winner, caseItem?.price || 0);
     setFinalResult(winner);
 
     if (!rouletteSkins) {
-      const visualTab = generateRouletteTab(skins, winner);
+      const visualTab = generateRouletteTab(skins, winner, caseItem?.type === 'souvenir');
       setRouletteSkins(visualTab);
     } else {
-      const visualTab = generateRouletteTab(skins, winner);
+      const visualTab = generateRouletteTab(skins, winner, caseItem?.type === 'souvenir');
       for (let i = 0; i < 19; i++) {
         visualTab[i] = rouletteSkins[rouletteSkins.length - 19 + i];
       }
