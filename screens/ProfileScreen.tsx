@@ -9,8 +9,9 @@ import { useSellSkins } from "@/hooks/useSellSkins";
 import { useUiStore } from "@/stores/uiStore";
 import { LinearGradient } from "expo-linear-gradient";
 import { useFocusEffect, useRouter } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
 import { ArrowLeft, Edit3, PackageOpen, Settings, Trash2, X } from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, FlatList } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Avatar, Button, Spinner, Text, XStack, YStack } from "tamagui";
@@ -37,7 +38,9 @@ export default function ProfileScreen() {
 
     const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInventory(filters);
 
-
+    useEffect(() => {
+        SplashScreen.hideAsync();
+    }, []);
     // 🐛 CORRECTION DU BUG DE PRIX : On ajoute ou on soustrait intelligemment
     const toggleSelection = (id: string, price: number) => {
         setIdsDelete(prev => {
@@ -71,7 +74,7 @@ export default function ProfileScreen() {
         const price = totalPrice
         const ids = idsDelete
         sellSkins(
-            { ids, price },
+            { ids, price, leaderboardId: profile?.active_weekly_leaderboard_id ?? null },
             {
                 onSuccess: () => {
                     // Si la vente réussit, on vide la sélection

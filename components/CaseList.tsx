@@ -2,6 +2,7 @@
 import { Case } from "@/constants/case";
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useCases } from "@/hooks/useCases";
+import { useProfileMe } from "@/hooks/useProfileMe";
 import { useDemoStore } from "@/stores/demoStore";
 import { getSearchStats, searchCases } from "@/utils/searchUtils";
 import { ChevronRight, Package, Star, Sticker } from "lucide-react-native";
@@ -76,10 +77,30 @@ const CaseList = () => {
     const colors = useAppTheme();
     const filteredCases = searchCases(cases || [], searchQuery);
     const stats = getSearchStats(cases || [], searchQuery);
+    const { data: profile } = useProfileMe();
+    const { mode } = useDemoStore();
 
-    const basiqueCases = filteredCases.filter((c) => c.type === 'basique');
-    const souvenirCases = filteredCases.filter((c) => c.type === 'souvenir');
-    const stickerCases = filteredCases.filter((c) => c.type === 'sticker');
+    const basiqueCases = filteredCases.filter((c) => {
+        if (profile?.balance != null || mode === 'demo') {
+            return c.type === 'basique' && c.price > 0;
+        } else {
+            return c.type === 'basique' && c.price == 0;
+        }
+    });
+    const souvenirCases = filteredCases.filter((c) => {
+        if (profile?.balance != null || mode === 'demo') {
+            return c.type === 'souvenir' && c.price > 0;
+        } else {
+            return c.type === 'souvenir' && c.price == 0;
+        }
+    });
+    const stickerCases = filteredCases.filter((c) => {
+        if (profile?.balance != null || mode === 'demo') {
+            return c.type === 'sticker' && c.price > 0;
+        } else {
+            return c.type === 'sticker' && c.price == 0;
+        }
+    });
 
     // Message si aucun résultat
     if (searchQuery && filteredCases.length === 0) {

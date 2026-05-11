@@ -1,7 +1,7 @@
 import { useAppTheme } from "@/hooks/useAppTheme";
 import { useUiStore } from "@/stores/uiStore";
 import { Tabs } from "expo-router";
-import { Home, User } from "lucide-react-native";
+import { Home, Trophy, User } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Text } from "tamagui";
 
@@ -41,6 +41,26 @@ export default function TabLayout() {
                 animation: 'shift',
             }}
         >
+            <Tabs.Screen
+                name="leaderbords"
+                options={{
+                    headerShown: false,
+                    tabBarIcon: ({ color, focused }) => (
+                        <Trophy
+                            color={color}
+                            size={focused ? 30 : 24}
+                            strokeWidth={focused ? 2.5 : 2}
+                        />
+                    ),
+                    tabBarLabel: ({ focused, color }) => (
+                        focused ? (
+                            <Text style={{ color, fontSize: 11, fontWeight: '700', marginTop: 2 }}>
+                                Classement
+                            </Text>
+                        ) : null
+                    ),
+                }}
+            />
             <Tabs.Screen
                 name="index"
                 options={{

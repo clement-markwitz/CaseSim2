@@ -6,7 +6,7 @@ import SearchBar from '@/components/ui/SearchBar';
 import { colorRarityBar } from '@/constants/Colors';
 import { useDemoStore } from '@/stores/demoStore';
 import { Ionicons } from '@expo/vector-icons';
-import { RefreshCcw } from '@tamagui/lucide-icons-2';
+import { RefreshCcw, X } from '@tamagui/lucide-icons-2';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as SplashScreen from 'expo-splash-screen';
@@ -18,7 +18,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 // On importe toute la structure depuis Tamagui
 import RewardList from '@/components/RewardList';
 import { useAppTheme } from '@/hooks/useAppTheme';
-import { Button, ScrollView, Text, XStack, YStack } from 'tamagui';
+import { useProfileMe } from '@/hooks/useProfileMe';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
+import { Button, Dialog, ScrollView, Text, Unspaced, XStack, YStack } from 'tamagui';
 // Composant pour les statistiques individuelles avec animation
 const StatCard = ({
     icon,
@@ -258,12 +261,161 @@ const BestDropCard = ({ drop }: { drop: any }) => {
     );
 };
 
+
+const WelcomeDialog = ({ balance }: { balance: number | null | undefined }) => {
+    const router = useRouter();
+    const colors = useAppTheme();
+    const { mode } = useDemoStore()
+
+    const [isOpen, setIsOpen] = useState(false);
+
+    useEffect(() => {
+        setIsOpen(balance === null && mode == "real");
+    }, [balance]);
+
+    return (
+        <Dialog modal open={isOpen}>
+            <Dialog.Portal>
+                {/* Overlay plus profond avec un effet de flou subtil */}
+                <Dialog.Overlay
+                    key="overlay"
+                    transition={{ type: "spring", duration: 400, delay: 50 }}
+                    opacity={0.85}
+                    enterStyle={{ opacity: 0 }}
+                    exitStyle={{ opacity: 0 }}
+                    backgroundColor="$black075"
+                    backdropFilter="blur(8px)"
+                />
+
+                <Dialog.Content
+                    elevate
+                    key="content"
+                    transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                    enterStyle={{ y: 40, opacity: 0, scale: 0.92 }}
+                    exitStyle={{ y: 20, opacity: 0, scale: 0.96 }}
+
+                    /* ===== Style modernisé ===== */
+                    backgroundColor={colors.background_secondary}
+                    borderColor={colors.tint}
+                    borderWidth={1}
+                    borderRadius="$8"           // Coins plus arrondis
+                    padding="$6"                // Plus d'air intérieur
+                    width="90%"
+                    maxWidth={380}
+                    gap="$5"
+
+                    /* Ombre douce et moderne */
+                    shadowColor={colors.tint}
+                    shadowOffset={{ width: 0, height: 8 }}
+                    shadowOpacity={0.15}
+                    shadowRadius={24}
+                >
+                    {/* En-tête avec icône centrée */}
+                    <YStack alignItems="center" gap="$3">
+                        <XStack
+                            backgroundColor={`${colors.tint}20`}
+                            borderRadius="$6"
+                            padding="$3"
+                            alignItems="center"
+                            justifyContent="center"
+                        >
+                            <Text fontSize={32}>🏆</Text>
+                        </XStack>
+
+                        <Dialog.Title
+                            fontSize={24}
+                            fontWeight="900"
+                            color={colors.text}
+                            textAlign="center"
+                            letterSpacing={-0.5}
+                        >
+                            Nouveau Tournoi
+                        </Dialog.Title>
+                    </YStack>
+
+                    <Dialog.Description
+                        fontSize={15}
+                        color={colors.text_muted}
+                        lineHeight={24}
+                        textAlign="center"
+                        paddingHorizontal="$2"
+                    >
+                        Pour commencer ta semaine de compétition, ouvre ta caisse de départ gratuite.{"\n\n"}
+                        Elle te donnera ton premier skin et créditera tes{" "}
+                        <Text color={colors.tint} fontWeight="700">10.00€</Text> de budget !
+                    </Dialog.Description>
+
+                    {/* Bouton principal modernisé */}
+                    <YStack marginTop="$2" gap="$3" width="100%">
+                        <Dialog.Close asChild>
+                            <Button
+                                theme="active"
+                                backgroundColor={colors.tint}
+                                height={54}
+                                borderRadius="$6"
+                                pressStyle={{
+                                    scale: 0.97,
+                                    opacity: 0.9,
+                                }}
+                                hoverStyle={{
+                                    scale: 1.02,
+                                    opacity: 0.95,
+                                }}
+                                transition={{
+                                    type: "spring",
+                                    damping: 25,
+                                    stiffness: 300,
+                                    mass: 0.8,
+                                }}
+                                onPress={() => {
+                                    setIsOpen(false);
+                                    router.push('/case/X_Ray_P250_Package');
+                                }}
+                            >
+                                <Text color={colors.text} fontSize={14} fontWeight="600">Ouvrir ma caisse gratuite</Text>
+                            </Button>
+                        </Dialog.Close>
+
+                        <Dialog.Close asChild>
+                            <Button
+                                chromeless
+                                height={44}
+                                pressStyle={{ opacity: 0.6 }}
+                                onPress={() => setIsOpen(false)}
+                            >
+                                <Text color={colors.text_muted} fontSize={14} fontWeight="600" >Plus tard</Text>
+                            </Button>
+                        </Dialog.Close>
+                    </YStack>
+
+                    {/* Bouton fermeture discrêt en haut à droite */}
+                    <Unspaced>
+                        <Dialog.Close asChild>
+                            <Button
+                                position="absolute"
+                                top="$3"
+                                right="$3"
+                                size="$2"
+                                circular
+                                chromeless
+                                icon={X}
+                                pressStyle={{ scale: 0.9, opacity: 0.5 }}
+                                onPress={() => setIsOpen(false)}
+                            />
+                        </Dialog.Close>
+                    </Unspaced>
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog>
+    );
+};
 const MainContent = () => {
     const { totalOpened, totalValue, bestDrop, getProfit } = useDemoStore();
     const { reset } = useQueryErrorResetBoundary();
     const displayColor = getProfit() >= 0 ? '#00B894' : '#E74C3C';
     const profitIcon = getProfit() >= 0 ? 'trending-up' : 'trending-down';
     const colors = useAppTheme();
+    const { data: profile } = useProfileMe()
 
     const containerAnim = useRef(new Animated.Value(0)).current;
 
@@ -283,6 +435,7 @@ const MainContent = () => {
 
     return (
         <>
+            <WelcomeDialog balance={profile?.balance} />
             {/* J'ai gardé les ErrorBoundary, c'est une excellente pratique ! */}
             <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}>
                 <Header />
