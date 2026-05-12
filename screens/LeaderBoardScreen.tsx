@@ -165,10 +165,15 @@ export default function LeaderboardsScreen() {
 
             // L'en-tête de la liste
             ListHeaderComponent={
-              <XStack paddingHorizontal="$3" marginBottom="$2" justifyContent="space-between">
-                <Text fontSize={12} color={colors.text_muted} textTransform="uppercase">Joueur</Text>
-                <Text fontSize={12} color={colors.text_muted} textTransform="uppercase">Score</Text>
-              </XStack>
+              <YStack justifyContent='center' paddingHorizontal="$3">
+                {leaderbords.length > 0 && leaderbords[0]?.end_date && (
+                  <Text fontSize={12} color={colors.tint} textTransform="uppercase" paddingBottom="$2" > Fin du classement / reset : {new Date(leaderbords[0].end_date).toDateString()}</Text>
+                )}
+                <XStack marginBottom="$2" justifyContent="space-between">
+                  <Text fontSize={12} color={colors.text_muted} textTransform="uppercase">Joueur</Text>
+                  <Text fontSize={12} color={colors.text_muted} textTransform="uppercase">Score</Text>
+                </XStack>
+              </YStack>
             }
 
             // Le rendu de chaque ligne
