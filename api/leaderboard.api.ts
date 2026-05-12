@@ -1,6 +1,35 @@
 import { Leaderboard, ProfileLeaderboard, Reward } from "@/constants/leaderboard";
 import { supabase } from "@/utils/supabase";
 
+export interface FinalLeaderboardReward {
+    prices: number;
+    days_premium: number;
+    pool_id: string;
+    final_rank: number;
+    leaderboard_id: number;
+}
+
+export const getFinalLeaderboardReward = async ({ userId }: { userId: string }): Promise<FinalLeaderboardReward | null> => {
+    const { data, error } = await supabase.rpc('get_final_reward_leaderboards', { p_user_id: userId });
+
+    if (error) {
+        console.error("Erreur lors de la récupération de la récompense finale:", error);
+        throw error;
+    }
+
+    if (!data) {
+        return null;
+    }
+
+    return {
+        prices: Number(data.prices),
+        days_premium: Number(data.days_premium),
+        pool_id: data.pool_id,
+        final_rank: Number(data.final_rank),
+        leaderboard_id: Number(data.leaderboard_id),
+    };
+};
+
 export const getLeaderboard = async ({ id }: { id: string }): Promise<Leaderboard[] | null> => {
     const { data, error } = await supabase
         .rpc('get_leaderboards_for_user', { p_user_id: id, p_reward_pool: "classic_30" })

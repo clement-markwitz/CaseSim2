@@ -109,10 +109,17 @@ export default function ProfileScreen() {
                 </XStack>
 
                 <XStack gap={10}>
-                    <YStack flex={1} backgroundColor={colors.background_elevated} borderRadius={12} padding={12} alignItems="center">
-                        <Text fontSize={20} fontWeight="900" color={colors.success}>{profile?.balance?.toFixed(2)} $</Text>
+                    <YStack flex={1} backgroundColor={colors.background_elevated} borderRadius={12}  alignItems="center" justifyContent="center">
+                        {profile?.balance && (
+                            <Text fontSize={20} padding={10} fontWeight="900" color={colors.success}>{profile?.balance?.toFixed(2)} $</Text>
+                        )}
+                        {!profile?.balance && (
+                            <Button  backgroundColor={colors.tint} size="$3"  onPress={() => router.push('/case/X_Ray_P250_Package')}>
+                                <Text fontSize={14} fontWeight="900"  color="white">Ouvrir une caisse</Text>
+                            </Button>
+                        )}
                     </YStack>
-                    <YStack flex={1} backgroundColor={colors.background_elevated} borderRadius={12} padding={12} alignItems="center">
+                    <YStack flex={1} backgroundColor={colors.background_elevated} borderRadius={12}  alignItems="center" justifyContent="center">
                         <Text fontSize={20} fontWeight="900" color={colors.tint}>{profile?.shop_balance} 💎</Text>
                     </YStack>
                 </XStack>
