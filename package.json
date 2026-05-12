@@ -50,6 +50,7 @@
     "zustand": "^5.0.10"
   },
   "devDependencies": {
+    "@tamagui/babel-plugin": "^2.0.0-rc.38",
     "@types/react": "~19.1.0",
     "babel-plugin-transform-import-meta": "^2.3.3",
     "react-test-renderer": "19.1.0",
