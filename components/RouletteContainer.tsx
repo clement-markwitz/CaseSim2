@@ -104,7 +104,7 @@ const RouletteContainer = ({ skins, onComplete }: RouletteContainerProps) => {
             },
             (finished) => {
                 if (finished) {
-                    // runOnJS permet d'exécuter des fonctions React classiques (setState) à la fin d'une animation native
+                    // scheduleOnRN permet d'exécuter des fonctions React classiques (setState) à la fin d'une animation native
                     scheduleOnRN(onRollComplete);                }
             }
         );
