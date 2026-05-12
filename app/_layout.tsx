@@ -1,10 +1,9 @@
 // app/_layout.tsx
 import { useColorScheme } from '@/components/useColorScheme';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { tamaguiConfig } from '@/tamagui.config';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { createAnimations } from '@tamagui/animations-react-native';
-import { defaultConfig } from '@tamagui/config/v5';
 import { focusManager, QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useFonts } from 'expo-font';
 import * as NavigationBar from 'expo-navigation-bar';
@@ -14,7 +13,7 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect } from 'react';
 import { AppState, AppStateStatus, Platform, View } from 'react-native';
 import 'react-native-reanimated';
-import { createTamagui, TamaguiProvider } from 'tamagui';
+import { TamaguiProvider } from 'tamagui';
 
 
 export { ErrorBoundary } from 'expo-router';
@@ -28,28 +27,7 @@ SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-const tamaguiConfig = createTamagui({
-  ...defaultConfig,
-  animations: createAnimations({
-    bouncy: {
-      type: 'spring',
-      damping: 10,
-      mass: 0.9,
-      stiffness: 100,
-    },
-    quick: {
-      type: 'spring',
-      damping: 20,
-      mass: 1.2,
-      stiffness: 250,
-    },
-    lazy: {
-      type: 'spring',
-      damping: 20,
-      stiffness: 60,
-    },
-  })
-});
+
 export default function RootLayout() {
   const colors = useAppTheme();
 
