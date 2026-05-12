@@ -18,6 +18,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 // On importe toute la structure depuis Tamagui
 import RewardList from '@/components/RewardList';
 import { useAppTheme } from '@/hooks/useAppTheme';
+import { usePendingLeaderboardReward } from '@/hooks/usePendingLeaderboardReward';
 import { useProfileMe } from '@/hooks/useProfileMe';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -262,7 +263,153 @@ const BestDropCard = ({ drop }: { drop: any }) => {
 };
 
 
-const WelcomeDialog = ({ balance }: { balance: number | null | undefined }) => {
+const RewardCard = ({ label, value, icon, accentColor }: { label: string; value: string; icon: string; accentColor: string }) => {
+    const colors = useAppTheme();
+
+    return (
+        <YStack
+            flex={1}
+            backgroundColor={colors.background_elevated}
+            borderRadius="$5"
+            padding="$4"
+            alignItems="center"
+            borderWidth={1}
+            borderColor={`${accentColor}60`}
+            gap="$2"
+        >
+            <Text fontSize={26}>{icon}</Text>
+            <Text fontSize={22} fontWeight="900" color={colors.text}>
+                {value}
+            </Text>
+            <Text fontSize={11} color={colors.text_muted} fontWeight="700" textTransform="uppercase" textAlign="center">
+                {label}
+            </Text>
+        </YStack>
+    );
+};
+
+const LeaderboardRewardDialog = ({ onOpenChange }: { onOpenChange: (isOpen: boolean) => void }) => {
+    const colors = useAppTheme();
+    const { mode } = useDemoStore();
+    const rewardQuery = usePendingLeaderboardReward();
+    const reward = rewardQuery.data;
+    const [isOpen, setIsOpen] = useState(false);
+    const [dismissedRewardKey, setDismissedRewardKey] = useState<string | null>(null);
+
+    const rewardKey = reward ? `${reward.leaderboard_id}-${reward.final_rank}` : null;
+
+    useEffect(() => {
+        const shouldOpen = mode === "real" && !!reward && rewardKey !== dismissedRewardKey;
+        const shouldBlockWelcome = shouldOpen || (mode === "real" && rewardQuery.isPending);
+        setIsOpen(shouldOpen);
+        onOpenChange(shouldBlockWelcome);
+    }, [dismissedRewardKey, mode, onOpenChange, reward, rewardKey, rewardQuery.isPending]);
+
+    const closeReward = () => {
+        if (rewardKey) {
+            setDismissedRewardKey(rewardKey);
+        }
+        setIsOpen(false);
+        onOpenChange(false);
+    };
+
+    if (!reward) {
+        return null;
+    }
+
+    return (
+        <Dialog modal open={isOpen} onOpenChange={(open) => !open && closeReward()}>
+            <Dialog.Portal>
+                <Dialog.Overlay
+                    key="leaderboard-reward-overlay"
+                    transition={{ type: "spring", duration: 400, delay: 50 }}
+                    opacity={0.88}
+                    enterStyle={{ opacity: 0 }}
+                    exitStyle={{ opacity: 0 }}
+                    backgroundColor="$black075"
+                    backdropFilter="blur(8px)"
+                />
+
+                <Dialog.Content
+                    elevate
+                    key="leaderboard-reward-content"
+                    transition={{ type: "spring", damping: 24, stiffness: 280, mass: 0.8 }}
+                    enterStyle={{ y: 40, opacity: 0, scale: 0.92 }}
+                    exitStyle={{ y: 20, opacity: 0, scale: 0.96 }}
+                    backgroundColor={colors.background_secondary}
+                    borderColor={colors.tint}
+                    borderWidth={1}
+                    borderRadius="$8"
+                    padding="$6"
+                    width="90%"
+                    maxWidth={390}
+                    gap="$5"
+                    shadowColor={colors.tint}
+                    shadowOffset={{ width: 0, height: 8 }}
+                    shadowOpacity={0.15}
+                    shadowRadius={24}
+                >
+                    <YStack alignItems="center" gap="$3">
+                        <XStack
+                            backgroundColor={`${colors.tint}20`}
+                            borderRadius="$6"
+                            padding="$3"
+                            alignItems="center"
+                            justifyContent="center"
+                        >
+                            <Text fontSize={34}>🏆</Text>
+                        </XStack>
+
+                        <Dialog.Title fontSize={24} fontWeight="900" color={colors.text} textAlign="center">
+                            Tournoi terminé
+                        </Dialog.Title>
+                    </YStack>
+
+                    <Dialog.Description fontSize={15} color={colors.text_muted} lineHeight={23} textAlign="center">
+                        Bravo ! Tu finis à la place{" "}
+                        <Text color={colors.tint} fontWeight="900">#{reward.final_rank}</Text>
+                        {" "}et tu remportes ta récompense de leaderboard.
+                    </Dialog.Description>
+
+                    <XStack gap="$3" width="100%">
+                        <RewardCard label="Diamants shop" value={`+${reward.prices}`} icon="💎" accentColor={colors.tint} />
+                        <RewardCard label="Jours premium" value={`+${reward.days_premium}`} icon="⭐" accentColor="#F5C542" />
+                    </XStack>
+
+                    <Button
+                        theme="active"
+                        backgroundColor={colors.tint}
+                        height={54}
+                        borderRadius="$6"
+                        pressStyle={{ scale: 0.97, opacity: 0.9 }}
+                        transition={{ type: "spring", damping: 25, stiffness: 300, mass: 0.8 }}
+                        onPress={closeReward}
+                    >
+                        <Text color={colors.text} fontSize={14} fontWeight="700">Continuer</Text>
+                    </Button>
+
+                    <Unspaced>
+                        <Dialog.Close asChild>
+                            <Button
+                                position="absolute"
+                                top="$3"
+                                right="$3"
+                                size="$2"
+                                circular
+                                chromeless
+                                icon={X}
+                                pressStyle={{ scale: 0.9, opacity: 0.5 }}
+                                onPress={closeReward}
+                            />
+                        </Dialog.Close>
+                    </Unspaced>
+                </Dialog.Content>
+            </Dialog.Portal>
+        </Dialog>
+    );
+};
+
+const WelcomeDialog = ({ balance, blocked = false }: { balance: number | null | undefined; blocked?: boolean }) => {
     const router = useRouter();
     const colors = useAppTheme();
     const { mode } = useDemoStore()
@@ -270,8 +417,8 @@ const WelcomeDialog = ({ balance }: { balance: number | null | undefined }) => {
     const [isOpen, setIsOpen] = useState(false);
 
     useEffect(() => {
-        setIsOpen(balance === null && mode == "real");
-    }, [balance]);
+        setIsOpen(balance === null && mode == "real" && !blocked);
+    }, [balance, blocked, mode]);
 
     return (
         <Dialog modal open={isOpen}>
@@ -416,6 +563,7 @@ const MainContent = () => {
     const profitIcon = getProfit() >= 0 ? 'trending-up' : 'trending-down';
     const colors = useAppTheme();
     const { data: profile } = useProfileMe()
+    const [isRewardDialogOpen, setRewardDialogOpen] = useState(false);
 
     const containerAnim = useRef(new Animated.Value(0)).current;
 
@@ -435,7 +583,8 @@ const MainContent = () => {
 
     return (
         <>
-            <WelcomeDialog balance={profile?.balance} />
+            <LeaderboardRewardDialog onOpenChange={setRewardDialogOpen} />
+            <WelcomeDialog balance={profile?.balance} blocked={isRewardDialogOpen} />
             {/* J'ai gardé les ErrorBoundary, c'est une excellente pratique ! */}
             <ErrorBoundary onReset={reset} fallbackRender={({ resetErrorBoundary }) => <Button icon={RefreshCcw} size="$5" onPress={resetErrorBoundary} />}>
                 <Header />
