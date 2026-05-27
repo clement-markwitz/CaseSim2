@@ -3,8 +3,16 @@ module.exports = function (api) {
     return {
         presets: ['babel-preset-expo'],
         plugins: [
-            // C'est ce plugin qui va régler ton problème de "SyntaxError import.meta"
-            'babel-plugin-transform-import-meta',
+            [
+                '@tamagui/babel-plugin',
+                {
+                  components: ['tamagui'],
+                  config: './tamagui.config.ts',    
+                  logTimings: true,
+                  disableExtraction: process.env.NODE_ENV === 'development',
+                },
+              ],
+              'react-native-worklets/plugin',
         ],
     };
 };
